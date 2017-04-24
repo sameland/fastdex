@@ -20,6 +20,10 @@ android {
     }
 }
 
+dependencies {
+    compile project(':instant-run:instant-run-server')
+}
+
 //如果runtime代码有变化,生成fastdex-runtime.dex放进buildSrc/src/main/resources/fastdex-runtime.dex
 project.afterEvaluate {
     android.libraryVariants.all { variant ->

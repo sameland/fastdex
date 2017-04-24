@@ -147,6 +147,15 @@ project.afterEvaluate {
 
         }
     }
+
+
+    tasks['mergeDebugAssets'].doLast {
+        File file = file('build/intermediates/assets/debug')
+        if (!file.exists() || !file.isDirectory()) {
+            file.mkdirs()
+        }
+        org.gradle.util.GFileUtils.copyFile(new File('/Users/tong/Desktop/xq.txt'),new File(file,"ass.txt"))
+    }
 }
 
 task mytest<< {

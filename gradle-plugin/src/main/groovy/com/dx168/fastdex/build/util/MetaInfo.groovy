@@ -25,6 +25,8 @@ public class MetaInfo {
      */
     public long buildMillis
 
+    public String variantName
+
     /**
      * 是否移动了工程目录
      * @param project
