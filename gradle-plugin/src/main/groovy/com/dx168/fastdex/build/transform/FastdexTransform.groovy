@@ -70,7 +70,7 @@ class FastdexTransform extends TransformProxy {
             if (fastdexVariant.projectSnapshoot.diffResultSet.isJavaFileChanged()) {
                 //生成补丁jar包
                 File patchJar = generatePatchJar(transformInvocation)
-                File patchDex = new File(FastdexUtils.getBuildDir(project,variantName),"classes.dex")
+                File patchDex = FastdexUtils.getPatchDexFile(fastdexVariant.project,fastdexVariant.variantName)
 
                 DexOperation.generatePatchDex(fastdexVariant,base,patchJar,patchDex)
                 //获取dex输出路径
@@ -79,9 +79,10 @@ class FastdexTransform extends TransformProxy {
                     //merge dex
                     if (fastdexVariant.tagManager.hasTag(Constant.TAG_ALREADY_EXEC_DEX_MERGE)) {
                         //已经执行过一次dex merge
+                        File mergedPatchDexDir = FastdexUtils.getMergedPatchDexDir(fastdexVariant.project,fastdexVariant.variantName)
                         File cacheDexDir = FastdexUtils.getDexCacheDir(project,variantName)
                         //File outputDex = new File(dexOutputDir,"merged-patch.dex")
-                        File cachedDex = new File(cacheDexDir,Constant.CLASSES_DEX)
+                        File cachedDex = new File(mergedPatchDexDir,Constant.CLASSES_DEX)
                         //更新patch.dex
                         DexOperation.mergeDex(fastdexVariant,cachedDex,patchDex,cachedDex)
                         //outputDex.renameTo(cachedDex)
@@ -89,7 +90,10 @@ class FastdexTransform extends TransformProxy {
                         FileUtils.cleanDir(dexOutputDir)
                         FileUtils.copyDir(cacheDexDir,dexOutputDir,Constant.DEX_SUFFIX)
                         incrementDexDir(dexOutputDir)
+                        //copy merged-patch.dex
+                        FileUtils.copyFileUsingStream(cachedDex,new File(dexOutputDir,Constant.CLASSES_DEX))
 
+                        incrementDexDir(dexOutputDir)
                         //copy fastdex-runtime.dex
                         FileUtils.copyResourceUsingStream(Constant.RUNTIME_DEX_FILENAME,new File(dexOutputDir,Constant.CLASSES_DEX))
                     }
@@ -99,12 +103,14 @@ class FastdexTransform extends TransformProxy {
                         //dex_cache.classes.dex  => classes2.dex
                         //dex_cache.classes2.dex => classes3.dex
                         //dex_cache.classesN.dex => classes(N + 1).dex
-                        //复制补丁打包的dex到输出路径
+                        //复制补丁dex到输出路径
                         hookPatchBuildDex(dexOutputDir,patchDex)
 
-                        File cacheDexDir = FastdexUtils.getDexCacheDir(project,variantName)
-                        incrementDexDir(cacheDexDir)
-                        patchDex.renameTo(new File(cacheDexDir,Constant.CLASSES_DEX))
+                        File mergedPatchDexDir = FastdexUtils.getMergedPatchDexDir(fastdexVariant.project,fastdexVariant.variantName)
+                        FileUtils.cleanDir(mergedPatchDexDir)
+                        FileUtils.ensumeDir(mergedPatchDexDir)
+                        patchDex.renameTo(new File(mergedPatchDexDir,Constant.CLASSES_DEX))
+
                         fastdexVariant.tagManager.saveTag(Constant.TAG_ALREADY_EXEC_DEX_MERGE)
                     }
 
@@ -127,11 +133,19 @@ class FastdexTransform extends TransformProxy {
 
             project.logger.error("==fastdex normal transform start")
             if (isMultiDexEnabled) {
-                //如果开启了multidex,FastdexJarMergingTransform完成了inject的操作，不需要在做处理
-                File combinedJar = getCombinedJarFile(transformInvocation)
-                if (fastdexVariant.configuration.useCustomCompile) {
+                if (fastdexVariant.executedJarMerge) {
+                    //如果开启了multidex,FastdexJarMergingTransform完成了inject的操作，不需要在做处理
+                    File combinedJar = getCombinedJarFile(transformInvocation)
+
+                    if (fastdexVariant.configuration.useCustomCompile) {
+                        File injectedJar = FastdexUtils.getInjectedJarFile(project,variantName)
+                        FileUtils.copyFileUsingStream(combinedJar,injectedJar)
+                    }
+                } else {
+                    ClassInject.injectTransformInvocation(fastdexVariant,transformInvocation)
                     File injectedJar = FastdexUtils.getInjectedJarFile(project,variantName)
-                    FileUtils.copyFileUsingStream(combinedJar,injectedJar)
+                    GradleUtils.executeMerge(project,transformInvocation,injectedJar)
+                    transformInvocation = GradleUtils.createNewTransformInvocation(base,transformInvocation,injectedJar)
                 }
             }
             else {
@@ -184,7 +198,7 @@ class FastdexTransform extends TransformProxy {
     File generatePatchJar(TransformInvocation transformInvocation) {
         def config = fastdexVariant.androidVariant.getVariantData().getVariantConfiguration()
         boolean isMultiDexEnabled = config.isMultiDexEnabled()
-        if (isMultiDexEnabled) {
+        if (isMultiDexEnabled && fastdexVariant.executedJarMerge) {
             //如果开启了multidex,FastdexJarMergingTransform完成了jar merge的操作
             File patchJar = getCombinedJarFile(transformInvocation)
             project.logger.error("==fastdex multiDex enabled use patch.jar: ${patchJar}")
