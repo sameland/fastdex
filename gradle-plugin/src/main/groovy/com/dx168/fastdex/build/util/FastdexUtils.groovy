@@ -78,19 +78,27 @@ public class FastdexUtils {
      */
     public static boolean hasDexCache(Project project, String variantName) {
         File cacheDexDir = getDexCacheDir(project,variantName)
-        if (!FileUtils.dirExists(cacheDexDir.getAbsolutePath())) {
+        return hasDex(cacheDexDir)
+    }
+
+    /**
+     * 目录中是否存在dex(classes.dex classesN.dex)
+     * @param dir
+     * @return
+     */
+    public static boolean hasDex(File dir) {
+        if (!FileUtils.dirExists(dir.getAbsolutePath())) {
             return false;
         }
 
         //check dex
         boolean result = false
-        for (File file : cacheDexDir.listFiles()) {
+        for (File file : dir.listFiles()) {
             if (file.getName().endsWith(Constant.DEX_SUFFIX)) {
                 result = true
                 break
             }
         }
-        //check R.txt
         return result
     }
 

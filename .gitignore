@@ -51,6 +51,7 @@ sample/build/
 sample/.gradle/
 fastdex-build/
 buildSrc/
+/*/build
 
 sample/common/build/
 sample/common-group/common2/build/
@@ -58,7 +59,9 @@ sample/common-group/common3/build/
 sample/javalib/build/
 sample/javalib-group/javalib2/build/
 sample/javalib-group/javalib3/build/
-
+instant-run/instant-run-common/build/
+instant-run/instant-run-client/build/
+instant-run/instant-run-server/build/
 
 
 
