@@ -30,6 +30,7 @@ public class DexOperation implements Opcodes {
         final List<File> inputFiles = new ArrayList<>()
         inputFiles.add(patchJar)
 
+        FileUtils.ensumeDir(patchDex.parentFile)
         String androidGradlePluginVersion = GradleUtils.ANDROID_GRADLE_PLUGIN_VERSION
         long start = System.currentTimeMillis()
         if ("2.0.0".equals(androidGradlePluginVersion)) {

@@ -70,6 +70,68 @@ public class FastdexUtils {
         return new File(cmd.toString()).absolutePath
     }
 
+    /**
+     * 是否存在dex缓存
+     * @param project
+     * @param variantName
+     * @return
+     */
+    public static boolean hasDexCache(Project project, String variantName) {
+        File cacheDexDir = getDexCacheDir(project,variantName)
+        if (!FileUtils.dirExists(cacheDexDir.getAbsolutePath())) {
+            return false;
+        }
+
+        //check dex
+        boolean result = false
+        for (File file : cacheDexDir.listFiles()) {
+            if (file.getName().endsWith(Constant.DEX_SUFFIX)) {
+                result = true
+                break
+            }
+        }
+        //check R.txt
+        return result
+    }
+
+    /**
+     * 获取所有编译的class存放目录
+     * @param invocation
+     * @return
+     */
+    public static Set<File> getDirectoryInputFiles(TransformInvocation invocation) {
+        Set<File> dirClasspaths = new HashSet<>();
+        for (TransformInput input : invocation.getInputs()) {
+            Collection<DirectoryInput> directoryInputs = input.getDirectoryInputs()
+            if (directoryInputs != null) {
+                for (DirectoryInput directoryInput : directoryInputs) {
+                    dirClasspaths.add(directoryInput.getFile())
+                }
+            }
+        }
+
+        return dirClasspaths
+    }
+
+    /**
+     * 获取缓存的依赖列表
+     * @param project
+     * @param variantName
+     * @return
+     */
+    public static Set<String> getCachedDependList(Project project,String variantName) {
+        Set<String> result = new HashSet<>()
+        File cachedDependListFile = FastdexUtils.getCachedDependListFile(project,variantName)
+        if (FileUtils.isLegalFile(cachedDependListFile)) {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(cachedDependListFile)))
+            String line = null
+            while ((line = reader.readLine()) != null) {
+                result.add(line)
+            }
+            reader.close()
+        }
+        return result
+    }
 
     /**
      * 获取fastdex的build目录
@@ -102,12 +164,53 @@ public class FastdexUtils {
     }
 
     /**
+     * 获取dex目录
+     * @param project
+     * @param variantName
+     * @return
+     */
+    public static getDexDir(Project project,String variantName) {
+        File file = new File(getBuildDir(project,variantName),"dex");
+        return file;
+    }
+
+    /**
      * 获取指定variantName的dex缓存目录
      * @param project
      * @return
      */
     public static final File getDexCacheDir(Project project,String variantName) {
-        File file = new File(getBuildDir(project,variantName),Constant.DEX_CACHE_DIR);
+        File file = new File(getDexDir(project,variantName),"cache");
+        return file;
+    }
+
+    /**
+     * 获取指定variantName的已合并的补丁dex目录
+     * @param project
+     * @return
+     */
+    public static final File getMergedPatchDexDir(Project project,String variantName) {
+        File file = new File(getDexDir(project,variantName),"merged-patch");
+        return file;
+    }
+
+    /**
+     * 获取指定variantName的补丁dex目录
+     * @param project
+     * @return
+     */
+    public static final File getPatchDexDir(Project project,String variantName) {
+        File file = new File(getDexDir(project,variantName),"patch");
+        return file;
+    }
+
+    /**
+     * 获取指定variantName的补丁dex文件
+     * @param project
+     * @return
+     */
+    public static final File getPatchDexFile(Project project,String variantName) {
+        File file = new File(getPatchDexDir(project,variantName),Constant.CLASSES_DEX);
         return file;
     }
 
@@ -119,30 +222,6 @@ public class FastdexUtils {
     public static final File getSourceSetSnapshootFile(Project project, String variantName) {
         File file = new File(getBuildDir(project,variantName),Constant.SOURCESET_SNAPSHOOT_FILENAME);
         return file;
-    }
-
-    /**
-     * 是否存在dex缓存
-     * @param project
-     * @param variantName
-     * @return
-     */
-    public static boolean hasDexCache(Project project, String variantName) {
-        File cacheDexDir = getDexCacheDir(project,variantName)
-        if (!FileUtils.dirExists(cacheDexDir.getAbsolutePath())) {
-            return false;
-        }
-
-        //check dex
-        boolean result = false
-        for (File file : cacheDexDir.listFiles()) {
-            if (file.getName().endsWith(Constant.DEX_SUFFIX)) {
-                result = true
-                break
-            }
-        }
-        //check R.txt
-        return result
     }
 
     /**
@@ -242,44 +321,5 @@ public class FastdexUtils {
     public static File getInjectedJarFile(Project project,String variantName) {
         File injectedJarFile = new File(getBuildDir(project,variantName),Constant.INJECTED_JAR_FILENAME)
         return injectedJarFile
-    }
-
-    /**
-     * 获取所有编译的class存放目录
-     * @param invocation
-     * @return
-     */
-    public static Set<File> getDirectoryInputFiles(TransformInvocation invocation) {
-        Set<File> dirClasspaths = new HashSet<>();
-        for (TransformInput input : invocation.getInputs()) {
-            Collection<DirectoryInput> directoryInputs = input.getDirectoryInputs()
-            if (directoryInputs != null) {
-                for (DirectoryInput directoryInput : directoryInputs) {
-                    dirClasspaths.add(directoryInput.getFile())
-                }
-            }
-        }
-
-        return dirClasspaths
-    }
-
-    /**
-     * 获取缓存的依赖列表
-     * @param project
-     * @param variantName
-     * @return
-     */
-    public static Set<String> getCachedDependList(Project project,String variantName) {
-        Set<String> result = new HashSet<>()
-        File cachedDependListFile = FastdexUtils.getCachedDependListFile(project,variantName)
-        if (FileUtils.isLegalFile(cachedDependListFile)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(cachedDependListFile)))
-            String line = null
-            while ((line = reader.readLine()) != null) {
-                result.add(line)
-            }
-            reader.close()
-        }
-        return result
     }
 }
