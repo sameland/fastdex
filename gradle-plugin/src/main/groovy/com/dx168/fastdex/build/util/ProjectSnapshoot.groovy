@@ -41,7 +41,7 @@ public class ProjectSnapshoot {
 
         String oldRootProjectPath = fastdexVariant.metaInfo.rootProjectPath
         String curRootProjectPath = project.rootProject.projectDir.absolutePath
-        boolean isRootProjectDirChanged = fastdexVariant.metaInfo.isRootProjectDirChanged(project)
+        boolean isRootProjectDirChanged = fastdexVariant.metaInfo.isRootProjectDirChanged(curRootProjectPath)
         if (isRootProjectDirChanged) {
             //已存在构建缓存的情况下,如果移动了项目目录要把缓存中的老的路径全部替换掉
             applyNewProjectDir(oldSourceSetSnapshoot,oldRootProjectPath,curRootProjectPath,curProjectPath)
@@ -58,7 +58,7 @@ public class ProjectSnapshoot {
 
             fastdexVariant.metaInfo.projectPath = curProjectPath
             fastdexVariant.metaInfo.rootProjectPath = curRootProjectPath
-            fastdexVariant.metaInfo.save(fastdexVariant)
+            fastdexVariant.saveMetaInfo()
             project.logger.error("==fastdex restore cache, project path changed old: ${oldProjectPath} now: ${curProjectPath}")
         }
     }

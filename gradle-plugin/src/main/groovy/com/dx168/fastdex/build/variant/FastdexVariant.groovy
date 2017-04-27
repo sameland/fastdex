@@ -1,6 +1,7 @@
 package com.dx168.fastdex.build.variant
 
 import com.dx168.fastdex.build.extension.FastdexExtension
+import com.dx168.fastdex.build.snapshoot.utils.SerializeUtils
 import com.dx168.fastdex.build.util.LibDependency
 import com.dx168.fastdex.build.util.MetaInfo
 import com.dx168.fastdex.build.util.ProjectSnapshoot
@@ -8,6 +9,7 @@ import com.dx168.fastdex.build.util.FastdexUtils
 import com.dx168.fastdex.build.util.FileUtils
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.TagManager
+import com.github.typ0520.fastdex.Version
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 
@@ -129,6 +131,7 @@ public class FastdexVariant {
             metaInfo = new MetaInfo()
             metaInfo.projectPath = project.projectDir.absolutePath
             metaInfo.rootProjectPath = project.rootProject.projectDir.absolutePath
+            metaInfo.fastdexVersion = Version.FASTDEX_BUILD_VERSION
             metaInfo.variantName = variantName
 
             FastdexUtils.cleanCache(project,variantName)
@@ -153,10 +156,9 @@ public class FastdexVariant {
      */
     public void onDexGenerateSuccess(boolean nornalBuild,boolean dexMerge) {
         if (nornalBuild) {
-            metaInfo.save(this)
+            saveMetaInfo()
             copyRTxt()
-
-
+            copyMetaInfo2Assets()
         }
         else {
             if (dexMerge) {
@@ -170,6 +172,17 @@ public class FastdexVariant {
             }
         }
         projectSnapshoot.onDexGenerateSuccess(nornalBuild,dexMerge)
+    }
+
+    def saveMetaInfo() {
+        File metaInfoFile = FastdexUtils.getMetaInfoFile(project,variantName)
+        SerializeUtils.serializeTo(new FileOutputStream(metaInfoFile),metaInfo)
+    }
+
+    def copyMetaInfo2Assets() {
+        File metaInfoFile = FastdexUtils.getMetaInfoFile(project,variantName)
+        File assetsPath = new File(project.buildDir,"intermediates${File.separator}assets${File.separator}${androidVariant.dirName}")
+        FileUtils.copyFileUsingStream(metaInfoFile,new File(assetsPath,metaInfoFile.getName()))
     }
 
     /**

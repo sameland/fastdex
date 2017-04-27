@@ -15,6 +15,8 @@ public class MetaInfo {
     public String projectPath
 
     public String rootProjectPath
+
+    public String fastdexVersion
     /**
      * 全量编译完成后输出的dex个数
      */
@@ -32,8 +34,8 @@ public class MetaInfo {
      * @param project
      * @return
      */
-    public boolean isRootProjectDirChanged(Project project) {
-        return !project.rootProject.projectDir.absolutePath.equals(rootProjectPath)
+    public boolean isRootProjectDirChanged(String curRootProjectPath) {
+        return !curRootProjectPath.equals(rootProjectPath)
     }
 
     public void save(FastdexVariant fastdexVariant) {
