@@ -115,6 +115,7 @@ class FastdexTransform extends TransformProxy {
                     fastdexVariant.onDexGenerateSuccess(false,true)
                 }
                 else {
+                    fastdexVariant.metaInfo.patchDexVersion += 1
                     //复制补丁打包的dex到输出路径
                     hookPatchBuildDex(dexOutputDir,mergedPatchDexDir,patchDex)
                     fastdexVariant.onDexGenerateSuccess(false,false)

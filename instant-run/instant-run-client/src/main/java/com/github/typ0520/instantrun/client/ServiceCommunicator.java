@@ -43,6 +43,10 @@ public class ServiceCommunicator {
 
     private final int mLocalPort;
 
+    public ServiceCommunicator(String packageName) {
+        this(packageName,new NullLogger(),46628);
+    }
+
     public ServiceCommunicator(String packageName, int port) {
         this(packageName,new NullLogger(),port);
     }

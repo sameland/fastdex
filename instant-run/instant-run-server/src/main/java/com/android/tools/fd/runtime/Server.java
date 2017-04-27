@@ -245,6 +245,8 @@ public class Server {
                         // foreground.
                         boolean active = Restarter.getForegroundActivity(context) != null;
                         output.writeBoolean(active);
+                        output.writeLong(1493250647829L);
+                        output.writeUTF("Debug");
                         if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
                             Log.v(LOG_TAG, "Received Ping message from the IDE; " +
                                     "returned active = " + active);

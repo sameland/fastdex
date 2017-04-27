@@ -18,24 +18,6 @@ package com.github.typ0520.instantrun.client;
 
 import java.util.Formatter;
 
-/**
- * <p>
- * Interface used to display warnings/errors while parsing the SDK content.
- * </p>
- * There are a few default implementations available:
- * <ul>
- * <li> {@link NullLogger} is an implementation that does <em>nothing</em> with the log.
- *  Useful for limited cases where you need to call a class that requires a non-null logging
- *  yet the calling code does not have any mean of reporting logs itself. It can be
- *  acceptable for use as a temporary implementation but most of the time that means the caller
- *  code needs to be reworked to take a logger object from its own caller.
- * </li>
- * <li> {@link StdLogger} is an implementation that dumps the log to {@link System#out} or
- *  {@link System#err}. This is useful for unit tests or code that does not have any GUI.
- *  GUI based apps based should not use it and should provide a better way to report to the user.
- * </li>
- * </ul>
- */
 public interface ILogger {
 
     /**

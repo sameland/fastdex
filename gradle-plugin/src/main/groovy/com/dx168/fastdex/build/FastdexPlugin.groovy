@@ -5,9 +5,12 @@ import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.JarMergingTransform
 import com.dx168.fastdex.build.task.FastdexCleanTask
+import com.dx168.fastdex.build.task.FastdexConnectDeviceWithAdbTask
 import com.dx168.fastdex.build.task.FastdexCreateMaindexlistFileTask
+import com.dx168.fastdex.build.task.FastdexInstantRunTask
 import com.dx168.fastdex.build.task.FastdexManifestTask
 import com.dx168.fastdex.build.task.FastdexResourceIdTask
+import com.dx168.fastdex.build.task.FastdexVariantInstantRunTask
 import com.dx168.fastdex.build.transform.FastdexJarMergingTransform
 import com.dx168.fastdex.build.util.FastdexBuildListener
 import com.dx168.fastdex.build.util.Constant
@@ -64,6 +67,11 @@ class FastdexPlugin implements Plugin<Project> {
 
             project.tasks.create("fastdexCleanAll", FastdexCleanTask)
 
+            FastdexInstantRunTask fastdexInstantRun = project.tasks.create("fastdex", FastdexInstantRunTask)
+            FastdexConnectDeviceWithAdbTask fastdexConnectDeviceWithAdbTask = project.tasks.create("fastdexConnectDeviceWithAdb", FastdexConnectDeviceWithAdbTask)
+            fastdexConnectDeviceWithAdbTask.fastdexInstantRun = fastdexInstantRun
+            fastdexInstantRun.dependsOn fastdexConnectDeviceWithAdbTask
+
             android.applicationVariants.all { variant ->
                 def variantOutput = variant.outputs.first()
                 def variantName = variant.name.capitalize()
@@ -95,6 +103,13 @@ class FastdexPlugin implements Plugin<Project> {
                     //创建清理指定variantName缓存的任务(用户触发)
                     FastdexCleanTask cleanTask = project.tasks.create("fastdexCleanFor${variantName}", FastdexCleanTask)
                     cleanTask.fastdexVariant = fastdexVariant
+
+                    //创建instantRunTask
+                    FastdexVariantInstantRunTask fastdexVariantInstantRunTask = project.tasks.create("Fastdex${variantName}", FastdexVariantInstantRunTask)
+                    fastdexVariantInstantRunTask.fastdexInstantRun = fastdexInstantRun
+                    fastdexVariantInstantRunTask.fastdexVariant = fastdexVariant
+                    fastdexInstantRun.dependsOn fastdexConnectDeviceWithAdbTask
+                    fastdexInstantRun.addVariantInstantRun(fastdexVariantInstantRunTask)
 
                     Task prepareTask = project.tasks.create("fastdexPrepareFor${variantName}", FastdexPrepareTask)
                     prepareTask.fastdexVariant = fastdexVariant

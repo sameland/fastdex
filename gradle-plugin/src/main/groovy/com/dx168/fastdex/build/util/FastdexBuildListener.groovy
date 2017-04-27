@@ -71,6 +71,10 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
                 return
             }
 
+            if (cause instanceof FastdexRuntimeException) {
+                return
+            }
+
             StackTraceElement[] stackTrace = cause.getStackTrace()
             if (stackTrace == null || stackTrace.length == 0) {
                 return
@@ -84,7 +88,7 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
             if (stackTraceElement.toString().contains(FastdexPlugin.class.getPackage().getName())) {
                 File errorLogFile = new File(FastdexUtils.getBuildDir(project),Constant.ERROR_REPORT_FILENAME)
 
-                Map<String,String> map = getStudioInfo();
+                Map<String,String> map = getStudioInfo()
 
                 println("\n===========================fastdex error report===========================")
                 ByteArrayOutputStream bos = new ByteArrayOutputStream()
@@ -160,16 +164,17 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
     public Map<String,String> getStudioInfo() {
         Map<String,String> map = new HashMap<>()
         if (Os.isFamily(Os.FAMILY_MAC)) {
-            File script = new File(FastdexUtils.getBuildDir(project),String.format(Constant.STUDIO_INFO_SCRIPT_MACOS,Version.FASTDEX_BUILD_VERSION))
-            if (!FileUtils.isLegalFile(script)) {
-                FileUtils.copyResourceUsingStream(Constant.STUDIO_INFO_SCRIPT_MACOS,script)
-            }
-            
-            int pid = getPid();
-            if (pid == -1) {
-                return map;
-            }
             try {
+                File script = new File(FastdexUtils.getBuildDir(project),String.format(Constant.STUDIO_INFO_SCRIPT_MACOS,Version.FASTDEX_BUILD_VERSION))
+                if (!FileUtils.isLegalFile(script)) {
+                    FileUtils.copyResourceUsingStream(Constant.STUDIO_INFO_SCRIPT_MACOS,script)
+                }
+
+                int pid = getPid();
+                if (pid == -1) {
+                    return map;
+                }
+
                 Process process = new ProcessBuilder("sh",script.getAbsolutePath(),"${pid}").start();
                 int status = process.waitFor();
                 if (status == 0) {
@@ -188,7 +193,7 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
                 }
                 process.destroy();
             } catch (Throwable e) {
-                e.printStackTrace()
+                //e.printStackTrace()
             }
         }
         return map

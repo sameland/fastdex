@@ -15,10 +15,11 @@
  */
 
 apply plugin: 'java'
+apply plugin: 'maven'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':instant-run:instant-run-common')
-
-
 }
+
+apply from: rootProject.file('bintray.gradle')

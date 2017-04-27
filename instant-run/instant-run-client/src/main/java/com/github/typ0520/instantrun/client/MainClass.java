@@ -37,7 +37,7 @@ public class MainClass {
     private static void showToast(ServiceCommunicator serviceCommunicator,IDevice device) throws IOException {
         serviceCommunicator.talkToService(device, new Communicator<Boolean>() {
             @Override
-            Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
+            public Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
                 output.writeInt(ProtocolConstants.MESSAGE_SHOW_TOAST);
                 output.writeUTF("来自pc的数据");
                 return false;
@@ -48,7 +48,7 @@ public class MainClass {
     private static void restartApp(ServiceCommunicator serviceCommunicator,IDevice device) throws IOException {
         serviceCommunicator.talkToService(device, new Communicator<Boolean>() {
             @Override
-            Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
+            public Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
                 output.writeInt(ProtocolConstants.MESSAGE_RESTART_ACTIVITY);
                 output.writeLong(0L);
                 return false;

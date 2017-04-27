@@ -21,10 +21,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-abstract class Communicator<T> {
+public abstract class Communicator<T> {
 
-    abstract T communicate( DataInputStream input,  DataOutputStream output) throws
-            IOException;
+    public abstract T communicate(DataInputStream input, DataOutputStream output) throws IOException;
 
     int getTimeout() {
         return 2000;

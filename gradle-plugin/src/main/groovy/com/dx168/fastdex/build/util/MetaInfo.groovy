@@ -29,6 +29,12 @@ public class MetaInfo {
 
     public String variantName
 
+    public int mergedDexVersion
+
+    public int patchDexVersion
+
+
+
     /**
      * 是否移动了工程目录
      * @param project
@@ -50,5 +56,13 @@ public class MetaInfo {
         } catch (Throwable e) {
             e.printStackTrace()
         }
+    }
+
+    @Override
+    public String toString() {
+        return "MetaInfo{" +
+                "buildMillis=" + buildMillis +
+                ", variantName='" + variantName + '\'' +
+                '}';
     }
 }
