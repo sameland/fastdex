@@ -134,6 +134,7 @@ public class FastdexVariant {
             metaInfo.fastdexVersion = Version.FASTDEX_BUILD_VERSION
             metaInfo.variantName = variantName
 
+            throw new RuntimeException("use cancel")
             FastdexUtils.cleanCache(project,variantName)
             FileUtils.ensumeDir(buildDir)
         }

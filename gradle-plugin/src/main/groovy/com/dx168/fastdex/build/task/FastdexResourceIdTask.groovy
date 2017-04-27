@@ -43,13 +43,23 @@ public class FastdexResourceIdTask extends DefaultTask {
 
         File idsXmlFile = FastdexUtils.getIdxXmlFile(project,fastdexVariant.variantName)
         File publicXmlFile = FastdexUtils.getPublicXmlFile(project,fastdexVariant.variantName)
-        if (FileUtils.isLegalFile(idsXmlFile) && FileUtils.isLegalFile(publicXmlFile)) {
-            project.logger.error("==fastdex public xml file and ids xml file already exist, just ignore")
-            return
-        }
 
         String idsXml = resDir + "/values/ids.xml";
         String publicXml = resDir + "/values/public.xml";
+        if (FileUtils.isLegalFile(idsXmlFile) && FileUtils.isLegalFile(publicXmlFile)) {
+            if (!FileUtils.isLegalFile(new File(idsXml)) || !FileUtils.isLegalFile(new File(publicXml))) {
+                FileUtils.copyFileUsingStream(publicXmlFile,new File(idsXml))
+                FileUtils.copyFileUsingStream(publicXmlFile,new File(publicXml))
+
+                project.logger.error("==fastdex apply resource public.xml")
+                project.logger.error("==fastdex apply resource idx.xml")
+            }
+            else {
+                project.logger.error("==fastdex public xml file and ids xml file already exist, just ignore")
+            }
+            return
+        }
+
         FileUtils.deleteFile(idsXml);
         FileUtils.deleteFile(publicXml);
         List<String> resourceDirectoryList = new ArrayList<String>()
@@ -61,7 +71,6 @@ public class FastdexResourceIdTask extends DefaultTask {
         AaptResourceCollector aaptResourceCollector = AaptUtil.collectResource(resourceDirectoryList, rTypeResourceMap)
         PatchUtil.generatePublicResourceXml(aaptResourceCollector, idsXml, publicXml)
         File publicFile = new File(publicXml)
-
 
         if (publicFile.exists()) {
             FileUtils.copyFileUsingStream(publicFile, publicXmlFile)
