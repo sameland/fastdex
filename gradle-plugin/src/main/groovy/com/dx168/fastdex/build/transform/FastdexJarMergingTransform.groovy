@@ -8,7 +8,7 @@ import com.dx168.fastdex.build.util.FastdexUtils
 import com.dx168.fastdex.build.util.JarOperation
 import com.dx168.fastdex.build.variant.FastdexVariant
 import com.android.build.api.transform.Format
-import com.dx168.fastdex.build.util.FileUtils
+import fastdex.common.utils.FileUtils
 
 /**
  * 拦截transformClassesWithJarMergingFor${variantName}任务,

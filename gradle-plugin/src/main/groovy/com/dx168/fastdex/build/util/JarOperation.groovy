@@ -6,6 +6,7 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
 import com.dx168.fastdex.build.snapshoot.api.DiffResultSet
 import com.dx168.fastdex.build.variant.FastdexVariant
+import fastdex.common.utils.FileUtils
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.GradleException
 import org.objectweb.asm.Opcodes
@@ -132,7 +133,7 @@ public class JarOperation implements Opcodes {
                 Files.walkFileTree(classpath,new SimpleFileVisitor<Path>(){
                     @Override
                     FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                        if (!file.toFile().getName().endsWith(Constant.CLASS_SUFFIX)) {
+                        if (!file.toFile().getName().endsWith(Constants.CLASS_SUFFIX)) {
                             return FileVisitResult.CONTINUE;
                         }
                         Path relativePath = classpath.relativize(file)
@@ -158,7 +159,7 @@ public class JarOperation implements Opcodes {
                             outputJarStream.closeEntry()
                         }
                         else {
-                            String className = relativePath.toString().substring(0,relativePath.toString().length() - Constant.CLASS_SUFFIX.length());
+                            String className = relativePath.toString().substring(0,relativePath.toString().length() - Constants.CLASS_SUFFIX.length());
                             className = className.replaceAll(Os.isFamily(Os.FAMILY_WINDOWS) ? "\\\\" : File.separator,"\\.")
                             for (String cn : changedClasses) {
                                 if (cn.equals(className) || className.startsWith("${cn}\$")) {

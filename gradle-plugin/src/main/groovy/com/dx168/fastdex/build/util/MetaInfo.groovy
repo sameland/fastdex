@@ -3,6 +3,7 @@ package com.dx168.fastdex.build.util
 import com.dx168.fastdex.build.snapshoot.utils.SerializeUtils
 import com.dx168.fastdex.build.variant.FastdexVariant
 import com.google.gson.Gson
+import fastdex.common.utils.FileUtils
 import org.gradle.api.Project;
 
 /**

@@ -2,6 +2,7 @@ package com.dx168.fastdex.build.util
 
 import com.android.build.api.transform.Transform
 import com.dx168.fastdex.build.variant.FastdexVariant
+import fastdex.common.utils.FileUtils
 import org.objectweb.asm.*
 import com.android.ide.common.blame.Message
 import com.android.ide.common.blame.ParsingProcessOutputHandler
@@ -108,9 +109,9 @@ public class DexOperation implements Opcodes {
     public static void mergeDex(FastdexVariant fastdexVariant,File outputDex,File patchDex,File cachedDex) {
         long start = System.currentTimeMillis()
         def project = fastdexVariant.project
-        File dexMergeCommandJarFile = new File(FastdexUtils.getBuildDir(project),Constant.DEX_MERGE_JAR_FILENAME)
+        File dexMergeCommandJarFile = new File(FastdexUtils.getBuildDir(project),Constants.DEX_MERGE_JAR_FILENAME)
         if (!FileUtils.isLegalFile(dexMergeCommandJarFile)) {
-            FileUtils.copyResourceUsingStream(Constant.DEX_MERGE_JAR_FILENAME,dexMergeCommandJarFile)
+            FileUtils.copyResourceUsingStream(Constants.DEX_MERGE_JAR_FILENAME,dexMergeCommandJarFile)
         }
 
         String javaCmdPath = FastdexUtils.getJavaCmdPath()

@@ -86,7 +86,7 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
             }
 
             if (stackTraceElement.toString().contains(FastdexPlugin.class.getPackage().getName())) {
-                File errorLogFile = new File(FastdexUtils.getBuildDir(project),Constant.ERROR_REPORT_FILENAME)
+                File errorLogFile = new File(FastdexUtils.getBuildDir(project),Constants.ERROR_REPORT_FILENAME)
 
                 Map<String,String> map = getStudioInfo()
 
@@ -165,9 +165,9 @@ class FastdexBuildListener implements TaskExecutionListener, BuildListener {
         Map<String,String> map = new HashMap<>()
         if (Os.isFamily(Os.FAMILY_MAC)) {
             try {
-                File script = new File(FastdexUtils.getBuildDir(project),String.format(Constant.STUDIO_INFO_SCRIPT_MACOS,Version.FASTDEX_BUILD_VERSION))
+                File script = new File(FastdexUtils.getBuildDir(project),String.format(Constants.STUDIO_INFO_SCRIPT_MACOS,Version.FASTDEX_BUILD_VERSION))
                 if (!FileUtils.isLegalFile(script)) {
-                    FileUtils.copyResourceUsingStream(Constant.STUDIO_INFO_SCRIPT_MACOS,script)
+                    FileUtils.copyResourceUsingStream(Constants.STUDIO_INFO_SCRIPT_MACOS,script)
                 }
 
                 int pid = getPid();

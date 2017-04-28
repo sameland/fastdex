@@ -5,6 +5,7 @@ import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
 import com.dx168.fastdex.build.variant.FastdexVariant
+import fastdex.common.utils.FileUtils
 import org.objectweb.asm.*
 import java.nio.file.FileVisitResult
 import java.nio.file.Files
@@ -176,7 +177,7 @@ public class ClassInject implements Opcodes {
             FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                 File classFile = file.toFile()
                 String fileName = classFile.getName()
-                if (!fileName.endsWith(Constant.CLASS_SUFFIX)) {
+                if (!fileName.endsWith(Constants.CLASS_SUFFIX)) {
                     return FileVisitResult.CONTINUE;
                 }
 

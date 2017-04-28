@@ -6,7 +6,7 @@ import com.dx168.fastdex.build.util.LibDependency
 import com.dx168.fastdex.build.util.MetaInfo
 import com.dx168.fastdex.build.util.ProjectSnapshoot
 import com.dx168.fastdex.build.util.FastdexUtils
-import com.dx168.fastdex.build.util.FileUtils
+import fastdex.common.utils.FileUtils
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.TagManager
 import com.github.typ0520.fastdex.Version
@@ -131,9 +131,6 @@ public class FastdexVariant {
             metaInfo = new MetaInfo()
             metaInfo.projectPath = project.projectDir.absolutePath
             metaInfo.rootProjectPath = project.rootProject.projectDir.absolutePath
-            metaInfo.fastdexVersion = Version.FASTDEX_BUILD_VERSION
-            metaInfo.variantName = variantName
-
             FastdexUtils.cleanCache(project,variantName)
             FileUtils.ensumeDir(buildDir)
         }

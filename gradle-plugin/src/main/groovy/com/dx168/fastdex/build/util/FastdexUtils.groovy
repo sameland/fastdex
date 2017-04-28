@@ -5,6 +5,7 @@ import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Project
+import fastdex.common.utils.FileUtils
 
 /**
  * Created by tong on 17/3/14.
@@ -94,7 +95,7 @@ public class FastdexUtils {
         //check dex
         boolean result = false
         for (File file : dir.listFiles()) {
-            if (file.getName().endsWith(Constant.DEX_SUFFIX)) {
+            if (file.getName().endsWith(Constants.DEX_SUFFIX)) {
                 result = true
                 break
             }
@@ -147,7 +148,7 @@ public class FastdexUtils {
      * @return
      */
     public static final File getBuildDir(Project project) {
-        File file = new File(project.getBuildDir(),Constant.BUILD_DIR);
+        File file = new File(project.getBuildDir(),Constants.BUILD_DIR);
         return file;
     }
 
@@ -218,7 +219,7 @@ public class FastdexUtils {
      * @return
      */
     public static final File getPatchDexFile(Project project,String variantName) {
-        File file = new File(getPatchDexDir(project,variantName),Constant.CLASSES_DEX);
+        File file = new File(getPatchDexDir(project,variantName),Constants.CLASSES_DEX);
         return file;
     }
 
@@ -228,7 +229,7 @@ public class FastdexUtils {
      * @return
      */
     public static final File getSourceSetSnapshootFile(Project project, String variantName) {
-        File file = new File(getBuildDir(project,variantName),Constant.SOURCESET_SNAPSHOOT_FILENAME);
+        File file = new File(getBuildDir(project,variantName),Constants.SOURCESET_SNAPSHOOT_FILENAME);
         return file;
     }
 
@@ -263,7 +264,7 @@ public class FastdexUtils {
      * @return
      */
     public static File getResourceMappingFile(Project project, String variantName) {
-        File resourceMappingFile = new File(getBuildResourceDir(project,variantName),Constant.R_TXT)
+        File resourceMappingFile = new File(getBuildResourceDir(project,variantName),Constants.R_TXT)
         return resourceMappingFile
     }
 
@@ -274,7 +275,7 @@ public class FastdexUtils {
      * @return
      */
     public static File getIdxXmlFile(Project project, String variantName) {
-        File idxXmlFile = new File(getBuildResourceDir(project,variantName),Constant.RESOURCE_IDX_XML)
+        File idxXmlFile = new File(getBuildResourceDir(project,variantName),Constants.RESOURCE_IDX_XML)
         return idxXmlFile
     }
 
@@ -285,7 +286,7 @@ public class FastdexUtils {
      * @return
      */
     public static File getPublicXmlFile(Project project, String variantName) {
-        File publicXmlFile = new File(getBuildResourceDir(project,variantName),Constant.RESOURCE_PUBLIC_XML)
+        File publicXmlFile = new File(getBuildResourceDir(project,variantName),Constants.RESOURCE_PUBLIC_XML)
         return publicXmlFile
     }
 
@@ -300,12 +301,12 @@ public class FastdexUtils {
      * @return
      */
     public static File getCachedDependListFile(Project project,String variantName) {
-        File cachedDependListFile = new File(getBuildDir(project,variantName),Constant.DEPENDENCIES_FILENAME)
+        File cachedDependListFile = new File(getBuildDir(project,variantName),Constants.DEPENDENCIES_FILENAME)
         return cachedDependListFile
     }
 
     public static File getMetaInfoFile(Project project,String variantName) {
-        File cachedDependListFile = new File(getBuildDir(project,variantName),Constant.META_INFO_FILENAME)
+        File cachedDependListFile = new File(getBuildDir(project,variantName),Constants.META_INFO_FILENAME)
         return cachedDependListFile
     }
 
@@ -316,7 +317,7 @@ public class FastdexUtils {
      * @return
      */
     public static File getDiffResultSetFile(Project project,String variantName) {
-        File diffResultFile = new File(getBuildDir(project,variantName),Constant.LAST_DIFF_RESULT_SET_FILENAME)
+        File diffResultFile = new File(getBuildDir(project,variantName),Constants.LAST_DIFF_RESULT_SET_FILENAME)
         return diffResultFile
     }
 
@@ -327,7 +328,7 @@ public class FastdexUtils {
      * @return
      */
     public static File getInjectedJarFile(Project project,String variantName) {
-        File injectedJarFile = new File(getBuildDir(project,variantName),Constant.INJECTED_JAR_FILENAME)
+        File injectedJarFile = new File(getBuildDir(project,variantName),Constants.INJECTED_JAR_FILENAME)
         return injectedJarFile
     }
 }

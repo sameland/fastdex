@@ -1,7 +1,7 @@
 package com.dx168.fastdex.build.task
 
-import com.dx168.fastdex.build.util.Constant
-import com.dx168.fastdex.build.util.FileUtils
+import com.dx168.fastdex.build.util.Constants
+import fastdex.common.utils.FileUtils
 import com.dx168.fastdex.build.variant.FastdexVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -46,16 +46,18 @@ public class FastdexResourceIdTask extends DefaultTask {
 
         String idsXml = resDir + "/values/ids.xml";
         String publicXml = resDir + "/values/public.xml";
-        if (FileUtils.isLegalFile(idsXmlFile) && FileUtils.isLegalFile(publicXmlFile)) {
-            if (!FileUtils.isLegalFile(new File(idsXml)) || !FileUtils.isLegalFile(new File(publicXml))) {
-                FileUtils.copyFileUsingStream(publicXmlFile,new File(idsXml))
-                FileUtils.copyFileUsingStream(publicXmlFile,new File(publicXml))
+        File resDirIdsXmlFile = new File(idsXml)
+        File resDirPublicXmlFile = new File(publicXml)
 
-                project.logger.error("==fastdex apply resource public.xml")
-                project.logger.error("==fastdex apply resource idx.xml")
+        if (FileUtils.isLegalFile(idsXmlFile) && FileUtils.isLegalFile(publicXmlFile)) {
+            if (!FileUtils.isLegalFile(resDirIdsXmlFile) || idsXmlFile.lastModified() != resDirIdsXmlFile.lastModified()) {
+                FileUtils.copyFileUsingStream(idsXmlFile,resDirIdsXmlFile)
+                project.logger.error("==fastdex apply cached resource idx.xml ${idsXml}")
             }
-            else {
-                project.logger.error("==fastdex public xml file and ids xml file already exist, just ignore")
+
+            if (!FileUtils.isLegalFile(resDirPublicXmlFile) || publicXmlFile.lastModified() != resDirPublicXmlFile.lastModified()) {
+                FileUtils.copyFileUsingStream(publicXmlFile,resDirPublicXmlFile)
+                project.logger.error("==fastdex apply cached resource public.xml ${publicXml}")
             }
             return
         }
@@ -74,12 +76,12 @@ public class FastdexResourceIdTask extends DefaultTask {
 
         if (publicFile.exists()) {
             FileUtils.copyFileUsingStream(publicFile, publicXmlFile)
-            project.logger.error("==fastdex gen resource public.xml in ${Constant.RESOURCE_PUBLIC_XML}")
+            project.logger.error("==fastdex gen resource public.xml in ${Constants.RESOURCE_PUBLIC_XML}")
         }
         File idxFile = new File(idsXml)
         if (idxFile.exists()) {
             FileUtils.copyFileUsingStream(idxFile, idsXmlFile)
-            project.logger.error("==fastdex gen resource idx.xml in ${Constant.RESOURCE_IDX_XML}")
+            project.logger.error("==fastdex gen resource idx.xml in ${Constants.RESOURCE_IDX_XML}")
         }
     }
 }

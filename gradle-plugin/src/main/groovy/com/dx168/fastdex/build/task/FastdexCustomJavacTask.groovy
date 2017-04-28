@@ -3,7 +3,7 @@ package com.dx168.fastdex.build.task
 import com.dx168.fastdex.build.snapshoot.sourceset.PathInfo
 import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetDiffResultSet
 import com.dx168.fastdex.build.util.FastdexUtils
-import com.dx168.fastdex.build.util.FileUtils
+import fastdex.common.utils.FileUtils
 import com.dx168.fastdex.build.variant.FastdexVariant
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection

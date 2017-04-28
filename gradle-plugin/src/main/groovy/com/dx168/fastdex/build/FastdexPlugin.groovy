@@ -5,15 +5,12 @@ import com.android.build.gradle.internal.pipeline.TransformTask
 import com.android.build.gradle.internal.transforms.DexTransform
 import com.android.build.gradle.internal.transforms.JarMergingTransform
 import com.dx168.fastdex.build.task.FastdexCleanTask
-import com.dx168.fastdex.build.task.FastdexConnectDeviceWithAdbTask
 import com.dx168.fastdex.build.task.FastdexCreateMaindexlistFileTask
-import com.dx168.fastdex.build.task.FastdexInstantRunTask
 import com.dx168.fastdex.build.task.FastdexManifestTask
 import com.dx168.fastdex.build.task.FastdexResourceIdTask
-import com.dx168.fastdex.build.task.FastdexVariantInstantRunTask
 import com.dx168.fastdex.build.transform.FastdexJarMergingTransform
 import com.dx168.fastdex.build.util.FastdexBuildListener
-import com.dx168.fastdex.build.util.Constant
+import com.dx168.fastdex.build.util.Constants
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.variant.FastdexVariant
 import org.gradle.api.GradleException
@@ -51,7 +48,7 @@ class FastdexPlugin implements Plugin<Project> {
 
             //最低支持2.0.0
             String androidGradlePluginVersion = GradleUtils.ANDROID_GRADLE_PLUGIN_VERSION
-            if (androidGradlePluginVersion.compareTo(Constant.MIN_SUPPORT_ANDROID_GRADLE_VERSION) < 0) {
+            if (androidGradlePluginVersion.compareTo(Constants.MIN_SUPPORT_ANDROID_GRADLE_VERSION) < 0) {
                 throw new GradleException("Your version too old 'com.android.tools.build:gradle:${androidGradlePluginVersion}', minimum support version 2.0.0")
             }
 
@@ -66,11 +63,6 @@ class FastdexPlugin implements Plugin<Project> {
             }
 
             project.tasks.create("fastdexCleanAll", FastdexCleanTask)
-
-            FastdexInstantRunTask fastdexInstantRun = project.tasks.create("fastdex", FastdexInstantRunTask)
-            FastdexConnectDeviceWithAdbTask fastdexConnectDeviceWithAdbTask = project.tasks.create("fastdexConnectDeviceWithAdb", FastdexConnectDeviceWithAdbTask)
-            fastdexConnectDeviceWithAdbTask.fastdexInstantRun = fastdexInstantRun
-            fastdexInstantRun.dependsOn fastdexConnectDeviceWithAdbTask
 
             android.applicationVariants.all { variant ->
                 def variantOutput = variant.outputs.first()
@@ -104,17 +96,30 @@ class FastdexPlugin implements Plugin<Project> {
                     FastdexCleanTask cleanTask = project.tasks.create("fastdexCleanFor${variantName}", FastdexCleanTask)
                     cleanTask.fastdexVariant = fastdexVariant
 
-                    //创建instantRunTask
-                    FastdexVariantInstantRunTask fastdexVariantInstantRunTask = project.tasks.create("Fastdex${variantName}", FastdexVariantInstantRunTask)
-                    fastdexVariantInstantRunTask.fastdexInstantRun = fastdexInstantRun
-                    fastdexVariantInstantRunTask.fastdexVariant = fastdexVariant
-                    fastdexVariantInstantRunTask.dependsOn getTransformClassesWithDexTask(project,variantName)
+                    //fix issue#8
+                    def tinkerPatchManifestTask = getTinkerPatchManifestTask(project, variantName)
+                    if (tinkerPatchManifestTask != null) {
+                        manifestTask.mustRunAfter tinkerPatchManifestTask
+                    }
 
-                    fastdexInstantRun.addVariantInstantRun(fastdexVariantInstantRunTask)
+                    variantOutput.processManifest.dependsOn getMergeDebugResources(project,variantName)
+                    //替换项目的Application为com.dx168.fastdex.runtime.FastdexApplication
+                    FastdexManifestTask manifestTask = project.tasks.create("fastdexProcess${variantName}Manifest", FastdexManifestTask)
+                    manifestTask.fastdexVariant = fastdexVariant
+                    manifestTask.mustRunAfter variantOutput.processManifest
+                    variantOutput.processResources.dependsOn manifestTask
+
+                    //保持补丁打包时R文件中相同的节点和第一次打包时的值保持一致
+                    FastdexResourceIdTask applyResourceTask = project.tasks.create("fastdexProcess${variantName}ResourceId", FastdexResourceIdTask)
+                    applyResourceTask.fastdexVariant = fastdexVariant
+                    applyResourceTask.resDir = variantOutput.processResources.resDir
+                    //let applyResourceTask run after manifestTask
+                    applyResourceTask.mustRunAfter manifestTask
+                    variantOutput.processResources.dependsOn applyResourceTask
 
                     Task prepareTask = project.tasks.create("fastdexPrepareFor${variantName}", FastdexPrepareTask)
                     prepareTask.fastdexVariant = fastdexVariant
-                    prepareTask.mustRunAfter getGenerateSourcesTask(project,variantName)
+                    prepareTask.mustRunAfter variantOutput.processResources
 
                     if (configuration.useCustomCompile) {
                         Task customJavacTask = project.tasks.create("fastdexCustomCompile${variantName}JavaWithJavac", FastdexCustomJavacTask)
@@ -140,26 +145,10 @@ class FastdexPlugin implements Plugin<Project> {
                         multidexlistTask.enabled = false
                     }
 
-                    //替换项目的Application为com.dx168.fastdex.runtime.FastdexApplication
-                    FastdexManifestTask manifestTask = project.tasks.create("fastdexProcess${variantName}Manifest", FastdexManifestTask)
-                    manifestTask.fastdexVariant = fastdexVariant
-                    manifestTask.mustRunAfter variantOutput.processManifest
-                    variantOutput.processResources.dependsOn manifestTask
-
-                    //fix issue#8
-                    def tinkerPatchManifestTask = getTinkerPatchManifestTask(project, variantName)
-                    if (tinkerPatchManifestTask != null) {
-                        manifestTask.mustRunAfter tinkerPatchManifestTask
+                    def collectMultiDexComponentsTask = getCollectMultiDexComponentsTask(project, variantName)
+                    if (collectMultiDexComponentsTask != null) {
+                        collectMultiDexComponentsTask.enabled = false
                     }
-
-                    //保持补丁打包时R文件中相同的节点和第一次打包时的值保持一致
-                    FastdexResourceIdTask applyResourceTask = project.tasks.create("fastdexProcess${variantName}ResourceId", FastdexResourceIdTask)
-                    applyResourceTask.fastdexVariant = fastdexVariant
-                    applyResourceTask.resDir = variantOutput.processResources.resDir
-                    //let applyResourceTask run after manifestTask
-                    applyResourceTask.mustRunAfter manifestTask
-                    variantOutput.processResources.dependsOn applyResourceTask
-
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override
                         public void graphPopulated(TaskExecutionGraph taskGraph) {
@@ -202,32 +191,36 @@ class FastdexPlugin implements Plugin<Project> {
     }
 
     Task getTinkerPatchManifestTask(Project project, String variantName) {
-        String taskName = "tinkerpatchSupportProcess${variantName}Manifest"
+        String tinkerPatchManifestTaskName = "tinkerpatchSupportProcess${variantName}Manifest"
         try {
-            return project.tasks.getByName(taskName)
+            return  project.tasks.getByName(tinkerPatchManifestTaskName)
         } catch (Throwable e) {
             return null
         }
     }
 
-    Task getGenerateSourcesTask(Project project, String variantName) {
-        String taskName = "generate${variantName}Sources"
-        project.tasks.getByName(taskName)
+    Task getMergeDebugResources(Project project, String variantName) {
+        String mergeResourcesTaskName = "merge${variantName}Resources"
+        project.tasks.getByName(mergeResourcesTaskName)
     }
 
     Task getTransformClassesWithMultidexlistTask(Project project, String variantName) {
-        String taskName = "transformClassesWithMultidexlistFor${variantName}"
+        String transformClassesWithMultidexlistTaskName = "transformClassesWithMultidexlistFor${variantName}"
         try {
-            return project.tasks.getByName(taskName)
+            return project.tasks.getByName(transformClassesWithMultidexlistTaskName)
         } catch (Throwable e) {
             //fix issue #1 如果没有开启multidex会报错
             return null
         }
     }
 
-    Task getTransformClassesWithDexTask(Project project, String variantName) {
-        String taskName = "transformClassesWithDexFor${variantName}"
-        project.tasks.getByName(taskName)
+    Task getCollectMultiDexComponentsTask(Project project, String variantName) {
+        try {
+            String collectMultiDexComponents = "collect${variantName}MultiDexComponents"
+            return project.tasks.findByName(collectMultiDexComponents)
+        } catch (Throwable e) {
+            return null
+        }
     }
 
     Field getFieldByName(Class<?> aClass, String name) {

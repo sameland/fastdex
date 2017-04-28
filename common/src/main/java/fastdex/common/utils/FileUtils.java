@@ -1,10 +1,17 @@
-package com.dx168.fastdex.build.util
+package fastdex.common.utils;
 
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Created by tong on 17/3/10.
@@ -166,6 +173,7 @@ public class FileUtils {
             while ((length = is.read(buffer)) > 0) {
                 os.write(buffer, 0, length);
             }
+            dest.setLastModified(source.lastModified());
         } finally {
             if (is != null) {
                 is.close();
@@ -184,7 +192,7 @@ public class FileUtils {
         }
         try {
             os = new FileOutputStream(dest, false);
-            os.write(content)
+            os.write(content);
         } finally {
             if (os != null) {
                 os.close();

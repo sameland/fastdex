@@ -5,6 +5,7 @@ import com.android.build.gradle.internal.pipeline.TransformManager
 import com.android.builder.model.Version
 import com.google.common.collect.Lists
 import com.android.build.gradle.internal.transforms.JarMerger
+import fastdex.common.utils.FileUtils
 import org.gradle.api.GradleException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
@@ -182,7 +183,7 @@ public class GradleUtils {
         InvocationHandler handler = new InvocationHandler(){
             public Object invoke(Object proxy, Method method, Object[] args)
                     throws Throwable {
-                return args[0].endsWith(Constant.CLASS_SUFFIX);
+                return args[0].endsWith(Constants.CLASS_SUFFIX);
             }
         };
         Object proxy = Proxy.newProxyInstance(zipEntryFilterClazz.getClassLoader(), classArr, handler);

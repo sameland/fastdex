@@ -126,8 +126,8 @@ public class ProjectSnapshoot {
         String dirName = fastdexVariant.androidVariant.dirName
         //buildTypeName         "debug"
         //dirName               "debug"
-        //libraryVariantdirName Constant.DEFAULT_LIBRARY_VARIANT_DIR_NAME
-        def libraryVariantdirName = Constant.DEFAULT_LIBRARY_VARIANT_DIR_NAME
+        //libraryVariantdirName Constants.DEFAULT_LIBRARY_VARIANT_DIR_NAME
+        def libraryVariantdirName = Constants.DEFAULT_LIBRARY_VARIANT_DIR_NAME
         /**
          * fix-issue32 https://github.com/typ0520/fastdex/issues/32
          * 正常的buildConfig目录
@@ -139,9 +139,9 @@ public class ProjectSnapshoot {
         if (!dirName.equals(buildTypeName)) {
             //buildTypeName         "debug"
             //dirName               "xxxx/debug"
-            //libraryVariantdirName Constant.DEFAULT_LIBRARY_VARIANT_DIR_NAME
+            //libraryVariantdirName Constants.DEFAULT_LIBRARY_VARIANT_DIR_NAME
             libraryVariantdirName = dirName.substring(0,dirName.length() - buildTypeName.length())
-            libraryVariantdirName = "${libraryVariantdirName}${Constant.DEFAULT_LIBRARY_VARIANT_DIR_NAME}"
+            libraryVariantdirName = "${libraryVariantdirName}${Constants.DEFAULT_LIBRARY_VARIANT_DIR_NAME}"
 
             if (libraryVariantdirName.startsWith(File.separator)) {
                 libraryVariantdirName = libraryVariantdirName.substring(1)
