@@ -108,7 +108,8 @@ class FastdexPlugin implements Plugin<Project> {
                     FastdexVariantInstantRunTask fastdexVariantInstantRunTask = project.tasks.create("Fastdex${variantName}", FastdexVariantInstantRunTask)
                     fastdexVariantInstantRunTask.fastdexInstantRun = fastdexInstantRun
                     fastdexVariantInstantRunTask.fastdexVariant = fastdexVariant
-                    fastdexInstantRun.dependsOn fastdexConnectDeviceWithAdbTask
+                    fastdexVariantInstantRunTask.dependsOn getTransformClassesWithDexTask(project,variantName)
+
                     fastdexInstantRun.addVariantInstantRun(fastdexVariantInstantRunTask)
 
                     Task prepareTask = project.tasks.create("fastdexPrepareFor${variantName}", FastdexPrepareTask)
@@ -201,27 +202,32 @@ class FastdexPlugin implements Plugin<Project> {
     }
 
     Task getTinkerPatchManifestTask(Project project, String variantName) {
-        String tinkerPatchManifestTaskName = "tinkerpatchSupportProcess${variantName}Manifest"
+        String taskName = "tinkerpatchSupportProcess${variantName}Manifest"
         try {
-            return  project.tasks.getByName(tinkerPatchManifestTaskName)
+            return project.tasks.getByName(taskName)
         } catch (Throwable e) {
             return null
         }
     }
 
     Task getGenerateSourcesTask(Project project, String variantName) {
-        String generateSourcesTaskName = "generate${variantName}Sources"
-        project.tasks.getByName(generateSourcesTaskName)
+        String taskName = "generate${variantName}Sources"
+        project.tasks.getByName(taskName)
     }
 
     Task getTransformClassesWithMultidexlistTask(Project project, String variantName) {
-        String transformClassesWithMultidexlistTaskName = "transformClassesWithMultidexlistFor${variantName}"
+        String taskName = "transformClassesWithMultidexlistFor${variantName}"
         try {
-            return project.tasks.getByName(transformClassesWithMultidexlistTaskName)
+            return project.tasks.getByName(taskName)
         } catch (Throwable e) {
             //fix issue #1 如果没有开启multidex会报错
             return null
         }
+    }
+
+    Task getTransformClassesWithDexTask(Project project, String variantName) {
+        String taskName = "transformClassesWithDexFor${variantName}"
+        project.tasks.getByName(taskName)
     }
 
     Field getFieldByName(Class<?> aClass, String name) {

@@ -17,6 +17,7 @@ public class FastdexInstantRunTask extends DefaultTask {
     //from FastdexConnectDeviceWithAdbTask
     IDevice device
     ServiceCommunicator serviceCommunicator
+    String packageName
 
     FastdexInstantRunTask() {
         group = 'fastdex'
@@ -24,7 +25,7 @@ public class FastdexInstantRunTask extends DefaultTask {
 
     @TaskAction
     void instantRun() {
-        String packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
+        packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
         serviceCommunicator = new ServiceCommunicator(packageName)
         try {
             MetaInfo runtimeMetaInfo = serviceCommunicator.talkToService(device, new Communicator<MetaInfo>() {
@@ -40,11 +41,54 @@ public class FastdexInstantRunTask extends DefaultTask {
                 }
             })
             project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
-        } catch (IOException e) {
-            e.printStackTrace()
-            //TODO 选择一个variant
 
+            FastdexVariantInstantRunTask fastdexVariantInstantRunTask = null
+            for (FastdexVariantInstantRunTask variantInstantRunTask : variantInstantRunTaskList) {
+                if (runtimeMetaInfo.variantName.equals(variantInstantRunTask.fastdexVariant.variantName)) {
+                    fastdexVariantInstantRunTask = variantInstantRunTask
+                    break
+                }
+            }
+            if (fastdexVariantInstantRunTask == null) {
+                project.logger.error("==fastdex ${runtimeMetaInfo.variantName} not found!")
+                throw new IOException("")
+            }
+            else {
+                project.logger.error("==fastdex instant run for ${runtimeMetaInfo.variantName}")
+                fastdexVariantInstantRunTask.execute()
+            }
+        } catch (IOException e) {
+
+//            if (!"debug".equalsIgnoreCase(variant.buildType.name as String)) {
+//                println "variant ${variant.name} is not debug, skip hack process."
+//                return
+//            } else if (!FreelineUtils.isEmpty(productFlavor) && !productFlavor.toString().equalsIgnoreCase(variant.flavorName)) {
+//                println "variant ${variant.name} is not ${productFlavor}, skip hack process."
+//                return
+//            }
+//
+//            println "find variant ${variant.name} start hack process..."
+
+            //TODO 选择一个variant
+            normalRun("Debug")
         }
+    }
+
+    void normalRun(String targetVariantName) {
+        def targetVariant = null
+        project.android.applicationVariants.all { variant ->
+            def variantName = variant.name.capitalize()
+
+            if (variantName.equals(targetVariantName)) {
+                targetVariant = variant
+            }
+        }
+
+        project.logger.error("==fastdex normalRun ${targetVariantName}")
+        targetVariant.assemble.invoke()
+        //卸载已存在app
+        //安装app
+        //启动第一个activity
     }
 
     public void addVariantInstantRun(FastdexVariantInstantRunTask variantInstantRunTask) {
