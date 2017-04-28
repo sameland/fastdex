@@ -7,6 +7,7 @@ import com.dx168.fastdex.build.snapshoot.string.StringNode
 import com.dx168.fastdex.build.snapshoot.string.StringSnapshoot
 import com.dx168.fastdex.build.variant.FastdexVariant
 import org.gradle.api.Project
+import fastdex.common.utils.FileUtils
 
 /**
  * Created by tong on 17/3/31.
