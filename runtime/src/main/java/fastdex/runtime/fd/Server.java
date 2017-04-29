@@ -34,8 +34,12 @@ import android.content.Context;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.util.Log;
 import dalvik.system.DexClassLoader;
+import fastdex.common.utils.FileUtils;
+import fastdex.runtime.Constants;
+import fastdex.runtime.fastdex.Fastdex;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -46,6 +50,7 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.UUID;
 
 /**
  * Server running in the app listening for messages from the IDE and updating the code and resources
@@ -252,6 +257,29 @@ public class Server {
                         continue;
                     }
 
+                    case MESSAGE_PATCHES: {
+                        if (!authenticate(input)) {
+                            return;
+                        }
+
+                        List<ApplicationPatch> changes = ApplicationPatch.read(input);
+                        if (changes == null) {
+                            continue;
+                        }
+
+                        boolean hasResources = hasResources(changes);
+                        int updateMode = input.readInt();
+                        updateMode = handlePatches(changes, hasResources, updateMode);
+
+                        boolean showToast = input.readBoolean();
+
+                        // Send an "ack" back to the IDE; this is used for timing purposes only
+                        output.writeBoolean(true);
+
+                        //restart(updateMode, hasResources, showToast);
+                        continue;
+                    }
+
                     case MESSAGE_PATH_EXISTS: {
                         if (FileManager.USE_EXTRACTED_RESOURCES) {
                             String path = input.readUTF();
@@ -313,29 +341,6 @@ public class Server {
                         continue;
                     }
 
-                    case MESSAGE_PATCHES: {
-                        if (!authenticate(input)) {
-                            return;
-                        }
-
-                        List<ApplicationPatch> changes = ApplicationPatch.read(input);
-                        if (changes == null) {
-                            continue;
-                        }
-
-                        boolean hasResources = hasResources(changes);
-                        int updateMode = input.readInt();
-                        updateMode = handlePatches(changes, hasResources, updateMode);
-
-                        boolean showToast = input.readBoolean();
-
-                        // Send an "ack" back to the IDE; this is used for timing purposes only
-                        output.writeBoolean(true);
-
-                        restart(updateMode, hasResources, showToast);
-                        continue;
-                    }
-
                     case MESSAGE_SHOW_TOAST: {
                         String text = input.readUTF();
                         Activity foreground = Restarter.getForegroundActivity(context);
@@ -373,7 +378,7 @@ public class Server {
     }
 
     private static boolean isResourcePath(String path) {
-        return path.equals(Paths.RESOURCE_FILE_NAME) || path.startsWith("res/");
+        return path.equals(Constants.RESOURCE_APK_FILE_NAME) || path.equals(Paths.RESOURCE_FILE_NAME) || path.startsWith("res/");
     }
 
     private static boolean hasResources(List<ApplicationPatch> changes) {
@@ -391,82 +396,120 @@ public class Server {
 
     private int handlePatches(List<ApplicationPatch> changes, boolean hasResources,
             int updateMode) {
-        if (hasResources) {
-            FileManager.startUpdate();
-        }
+//        if (hasResources) {
+//            FileManager.startUpdate();
+//        }
+//
+//        for (ApplicationPatch change : changes) {
+//            String path = change.getPath();
+//            if (path.equals(Paths.RELOAD_DEX_FILE_NAME)) {
+//                updateMode = handleHotSwapPatch(updateMode, change);
+//            } else if (isResourcePath(path)) {
+//                updateMode = handleResourcePatch(updateMode, change, path);
+//            }
+//        }
+//
+//        if (hasResources) {
+//            FileManager.finishUpdate(true);
+//        }
+//
+//        return updateMode;
 
-        for (ApplicationPatch change : changes) {
-            String path = change.getPath();
-            if (path.equals(Paths.RELOAD_DEX_FILE_NAME)) {
-                updateMode = handleHotSwapPatch(updateMode, change);
-            } else if (isResourcePath(path)) {
-                updateMode = handleResourcePatch(updateMode, change, path);
+
+        Fastdex fastdex = Fastdex.get(context);
+        File workDir = new File(fastdex.getTempDirectory(),System.currentTimeMillis() + "-" + UUID.randomUUID().toString());
+
+        try {
+            for (ApplicationPatch change : changes) {
+                String path = change.getPath();
+                if (path.endsWith(Constants.DEX_SUFFIX)) {
+                    updateMode = handleHotSwapPatch(updateMode, change,workDir);
+                } else if (isResourcePath(path)) {
+                    updateMode = handleResourcePatch(updateMode, change, path,workDir);
+                }
             }
+        } catch (Throwable e) {
+            return UPDATE_MODE_NONE;
         }
-
-        if (hasResources) {
-            FileManager.finishUpdate(true);
-        }
-
         return updateMode;
     }
 
-    private static int handleResourcePatch(int updateMode, ApplicationPatch patch,
-            String path) {
+    private static int handleResourcePatch(int updateMode, ApplicationPatch patch, String path, File workDir) throws IOException {
+//        if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+//            Log.v(Logging.LOG_TAG, "Received resource changes (" + path + ")");
+//        }
+//        FileManager.writeAaptResources(path, patch.getBytes());
+//        //noinspection ResourceType
+//        updateMode = Math.max(updateMode, UPDATE_MODE_WARM_SWAP);
+//        return updateMode;
+
         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
             Log.v(Logging.LOG_TAG, "Received resource changes (" + path + ")");
         }
-        FileManager.writeAaptResources(path, patch.getBytes());
+
+        FileUtils.write2file(patch.getBytes(),new File(workDir, Constants.RES_DIR + "/" + Constants.RESOURCE_APK_FILE_NAME));
         //noinspection ResourceType
         updateMode = Math.max(updateMode, UPDATE_MODE_WARM_SWAP);
         return updateMode;
     }
 
-    private int handleHotSwapPatch(int updateMode, ApplicationPatch patch) {
+    private int handleHotSwapPatch(int updateMode, ApplicationPatch patch, File workDir) {
+//        if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+//            Log.v(Logging.LOG_TAG, "Received incremental code patch");
+//        }
+//        try {
+//            String dexFile = FileManager.writeTempDexFile(patch.getBytes());
+//            if (dexFile == null) {
+//                Log.e(Logging.LOG_TAG, "No file to write the code to");
+//                return updateMode;
+//            } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+//                Log.v(Logging.LOG_TAG, "Reading live code from " + dexFile);
+//            }
+//            String nativeLibraryPath = FileManager.getNativeLibraryFolder().getPath();
+//            DexClassLoader dexClassLoader = new DexClassLoader(dexFile,
+//                    context.getCacheDir().getPath(), nativeLibraryPath,
+//                    getClass().getClassLoader());
+//
+//            // we should transform this process with an interface/impl
+//            Class<?> aClass = Class.forName(
+//                    "com.android.tools.fd.runtime.AppPatchesLoaderImpl", true, dexClassLoader);
+//            try {
+//                if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+//                    Log.v(Logging.LOG_TAG, "Got the patcher class " + aClass);
+//                }
+//
+////                PatchesLoader loader = (PatchesLoader) aClass.newInstance();
+////                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
+////                    Log.v(LOG_TAG, "Got the patcher instance " + loader);
+////                }
+////                String[] getPatchedClasses = (String[]) aClass
+////                        .getDeclaredMethod("getPatchedClasses").invoke(loader);
+////                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
+////                    Log.v(LOG_TAG, "Got the list of classes ");
+////                    for (String getPatchedClass : getPatchedClasses) {
+////                        Log.v(LOG_TAG, "class " + getPatchedClass);
+////                    }
+////                }
+////                if (!loader.load()) {
+////                    updateMode = UPDATE_MODE_COLD_SWAP;
+////                }
+//            } catch (Exception e) {
+//                Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
+//                e.printStackTrace();
+//                updateMode = UPDATE_MODE_COLD_SWAP;
+//            }
+//        } catch (Throwable e) {
+//            Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
+//            updateMode = UPDATE_MODE_COLD_SWAP;
+//        }
+//        return updateMode;
+
         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
             Log.v(Logging.LOG_TAG, "Received incremental code patch");
         }
         try {
-            String dexFile = FileManager.writeTempDexFile(patch.getBytes());
-            if (dexFile == null) {
-                Log.e(Logging.LOG_TAG, "No file to write the code to");
-                return updateMode;
-            } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                Log.v(Logging.LOG_TAG, "Reading live code from " + dexFile);
-            }
-            String nativeLibraryPath = FileManager.getNativeLibraryFolder().getPath();
-            DexClassLoader dexClassLoader = new DexClassLoader(dexFile,
-                    context.getCacheDir().getPath(), nativeLibraryPath,
-                    getClass().getClassLoader());
-
-            // we should transform this process with an interface/impl
-            Class<?> aClass = Class.forName(
-                    "com.android.tools.fd.runtime.AppPatchesLoaderImpl", true, dexClassLoader);
-            try {
-                if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                    Log.v(Logging.LOG_TAG, "Got the patcher class " + aClass);
-                }
-
-//                PatchesLoader loader = (PatchesLoader) aClass.newInstance();
-//                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
-//                    Log.v(LOG_TAG, "Got the patcher instance " + loader);
-//                }
-//                String[] getPatchedClasses = (String[]) aClass
-//                        .getDeclaredMethod("getPatchedClasses").invoke(loader);
-//                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
-//                    Log.v(LOG_TAG, "Got the list of classes ");
-//                    for (String getPatchedClass : getPatchedClasses) {
-//                        Log.v(LOG_TAG, "class " + getPatchedClass);
-//                    }
-//                }
-//                if (!loader.load()) {
-//                    updateMode = UPDATE_MODE_COLD_SWAP;
-//                }
-            } catch (Exception e) {
-                Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
-                e.printStackTrace();
-                updateMode = UPDATE_MODE_COLD_SWAP;
-            }
+            File tempDexDir = new File(workDir, Constants.RES_DIR + "/");
+            FileUtils.write2file(patch.getBytes(),new File(tempDexDir,patch.getPath()));
         } catch (Throwable e) {
             Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
             updateMode = UPDATE_MODE_COLD_SWAP;

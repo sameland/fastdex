@@ -1,9 +1,9 @@
 package com.dx168.fastdex.build.task
 
 import com.android.ddmlib.IDevice
-
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.MetaInfo
+import com.dx168.fastdex.build.variant.FastdexVariant
 import fastdex.build.lib.fd.Communicator
 import fastdex.build.lib.fd.ServiceCommunicator
 import org.gradle.api.DefaultTask
@@ -13,8 +13,7 @@ import org.gradle.api.tasks.TaskAction
  * Created by tong on 17/3/12.
  */
 public class FastdexInstantRunTask extends DefaultTask {
-    final List<FastdexVariantInstantRunTask> variantInstantRunTaskList = new ArrayList<>()
-    //from FastdexConnectDeviceWithAdbTask
+    FastdexVariant fastdexVariant;
     IDevice device
     ServiceCommunicator serviceCommunicator
     String packageName
@@ -42,13 +41,7 @@ public class FastdexInstantRunTask extends DefaultTask {
             })
             project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
 
-            FastdexVariantInstantRunTask fastdexVariantInstantRunTask = null
-            for (FastdexVariantInstantRunTask variantInstantRunTask : variantInstantRunTaskList) {
-                if (runtimeMetaInfo.variantName.equals(variantInstantRunTask.fastdexVariant.variantName)) {
-                    fastdexVariantInstantRunTask = variantInstantRunTask
-                    break
-                }
-            }
+
             if (fastdexVariantInstantRunTask == null) {
                 project.logger.error("==fastdex ${runtimeMetaInfo.variantName} not found!")
                 throw new IOException("")
@@ -89,9 +82,5 @@ public class FastdexInstantRunTask extends DefaultTask {
         //卸载已存在app
         //安装app
         //启动第一个activity
-    }
-
-    public void addVariantInstantRun(FastdexVariantInstantRunTask variantInstantRunTask) {
-        variantInstantRunTaskList.add(variantInstantRunTask)
     }
 }

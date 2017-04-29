@@ -1,7 +1,11 @@
 package fastdex.runtime.fastdex;
 
 import android.content.Context;
+import android.util.Log;
 import java.io.File;
+import java.io.InputStream;
+import fastdex.common.ShareConstants;
+import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 
 /**
@@ -12,10 +16,12 @@ public class Fastdex {
 
     private static Fastdex instance;
 
+    final RuntimeMetaInfo runtimeMetaInfo;
     final File patchDirectory;
     final File tempDirectory;
     final File dexDirectory;
     final File resourceDirectory;
+    private boolean fastdexEnabled = true;
 
     public static Fastdex get(Context context) {
         if (instance == null) {
@@ -37,6 +43,25 @@ public class Fastdex {
         tempDirectory = new File(patchDirectory,Constants.TEMP_DIR);
         dexDirectory = new File(patchDirectory,Constants.DEX_DIR);
         resourceDirectory = new File(patchDirectory,Constants.RES_DIR);
+
+        RuntimeMetaInfo metaInfo = RuntimeMetaInfo.load(this);
+        if (metaInfo == null) {
+            try {
+                InputStream is = applicationContext.getAssets().open(ShareConstants.META_INFO_FILENAME);
+                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
+                FileUtils.write2file(FileUtils.readStream(is),metaInfoFile);
+                metaInfo = RuntimeMetaInfo.load(this);
+            } catch (Throwable e) {
+                Log.d(LOG_TAG,"fastdex disabled: " + e.getMessage());
+            }
+        }
+        this.runtimeMetaInfo = metaInfo;
+        if (this.runtimeMetaInfo == null) {
+            fastdexEnabled = false;
+
+            FileUtils.cleanDir(patchDirectory);
+            FileUtils.cleanDir(tempDirectory);
+        }
     }
 
     public Context getApplicationContext() {
@@ -44,6 +69,14 @@ public class Fastdex {
     }
 
     public void onAttachBaseContext() {
+        FileUtils.cleanDir(tempDirectory);
+    }
 
+    public File getTempDirectory() {
+        return tempDirectory;
+    }
+
+    public boolean isFastdexEnabled() {
+        return fastdexEnabled;
     }
 }

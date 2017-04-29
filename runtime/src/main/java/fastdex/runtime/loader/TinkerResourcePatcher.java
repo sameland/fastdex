@@ -29,9 +29,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import fastdex.runtime.loader.shareutil.ShareReflectUtil;
-
 import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.KITKAT;
 
@@ -42,13 +40,11 @@ import static android.os.Build.VERSION_CODES.KITKAT;
 public class TinkerResourcePatcher {
     private static final String TAG               = "Tinker.ResourcePatcher";
     private static final String TEST_ASSETS_VALUE = "only_use_to_test_tinker_resource.txt";
-//    private static final String MIUI_RESOURCE_CLASSNAME = "android.content.res.MiuiResources";
 
     // original object
     private static Collection<WeakReference<Resources>> references            = null;
     private static Object                               currentActivityThread = null;
     private static AssetManager                         newAssetManager       = null;
-    //    private static ArrayMap<?, WeakReference<?>>         resourceImpls            = null;
 
     // method
     private static Method addAssetPathMethod       = null;
@@ -61,8 +57,6 @@ public class TinkerResourcePatcher {
     private static Field packagesFiled         = null;
     private static Field resourcePackagesFiled = null;
     private static Field publicSourceDirField  = null;
-
-//    private static boolean isMiuiSystem = false;
 
     public static void isResourceCanPatch(Context context) throws Throwable {
         //   - Replace mResDir to point to the external resource file instead of the .apk. This is
@@ -147,10 +141,6 @@ public class TinkerResourcePatcher {
             resourcesImplFiled = Resources.class.getDeclaredField("mResourcesImpl");
             resourcesImplFiled.setAccessible(true);
         }
-
-//        final Resources resources = context.getResources();
-//        isMiuiSystem = resources != null && MIUI_RESOURCE_CLASSNAME.equals(resources.getClass().getName());
-
         try {
             publicSourceDirField = ShareReflectUtil.findField(ApplicationInfo.class, "publicSourceDir");
         } catch (NoSuchFieldException ignore) {
@@ -258,14 +248,14 @@ public class TinkerResourcePatcher {
         }
     }
 
-    private static boolean checkResUpdate(Context context) {
-        try {
-            Log.e(TAG, "checkResUpdate success, found test resource assets file " + TEST_ASSETS_VALUE);
-            context.getAssets().open(TEST_ASSETS_VALUE);
-        } catch (Throwable e) {
-            Log.e(TAG, "checkResUpdate failed, can't find test resource assets file " + TEST_ASSETS_VALUE + " e:" + e.getMessage());
-            return false;
-        }
-        return true;
-    }
+//    private static boolean checkResUpdate(Context context) {
+//        try {
+//            Log.e(TAG, "checkResUpdate success, found test resource assets file " + TEST_ASSETS_VALUE);
+//            context.getAssets().open(TEST_ASSETS_VALUE);
+//        } catch (Throwable e) {
+//            Log.e(TAG, "checkResUpdate failed, can't find test resource assets file " + TEST_ASSETS_VALUE + " e:" + e.getMessage());
+//            return false;
+//        }
+//        return true;
+//    }
 }

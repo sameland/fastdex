@@ -132,7 +132,9 @@ public class FastdexApplication extends Application {
     public void onCreate() {
         super.onCreate();
 
-        startServer();
+        if (Fastdex.get(this).isFastdexEnabled()) {
+            startServer();
+        }
         if (this.realApplication != null) {
             this.realApplication.onCreate();
         }
