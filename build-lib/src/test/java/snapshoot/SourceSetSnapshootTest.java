@@ -1,9 +1,9 @@
 package snapshoot;
 
-import com.dx168.fastdex.build.snapshoot.file.FileNode;
-import com.dx168.fastdex.build.snapshoot.sourceset.JavaDirectorySnapshoot;
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetDiffResultSet;
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetSnapshoot;
+import fastdex.build.lib.snapshoot.file.FileNode;
+import fastdex.build.lib.snapshoot.sourceset.JavaDirectorySnapshoot;
+import fastdex.build.lib.snapshoot.sourceset.SourceSetDiffResultSet;
+import fastdex.build.lib.snapshoot.sourceset.SourceSetSnapshoot;
 import junit.framework.TestCase;
 import org.junit.Test;
 import java.io.File;

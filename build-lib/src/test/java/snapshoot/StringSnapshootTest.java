@@ -1,12 +1,12 @@
 package snapshoot;
 
-import com.dx168.fastdex.build.snapshoot.api.DiffInfo;
-import com.dx168.fastdex.build.snapshoot.api.DiffResultSet;
-import com.dx168.fastdex.build.snapshoot.api.Node;
-import com.dx168.fastdex.build.snapshoot.api.Status;
-import com.dx168.fastdex.build.snapshoot.string.StringDiffInfo;
-import com.dx168.fastdex.build.snapshoot.string.StringNode;
-import com.dx168.fastdex.build.snapshoot.string.StringSnapshoot;
+import fastdex.build.lib.snapshoot.api.DiffInfo;
+import fastdex.build.lib.snapshoot.api.DiffResultSet;
+import fastdex.build.lib.snapshoot.api.Node;
+import fastdex.build.lib.snapshoot.api.Status;
+import fastdex.build.lib.snapshoot.string.StringDiffInfo;
+import fastdex.build.lib.snapshoot.string.StringNode;
+import fastdex.build.lib.snapshoot.string.StringSnapshoot;
 import junit.framework.TestCase;
 import org.junit.Test;
 import java.util.*;

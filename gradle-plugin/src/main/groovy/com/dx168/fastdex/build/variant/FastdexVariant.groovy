@@ -1,7 +1,7 @@
 package com.dx168.fastdex.build.variant
 
 import com.dx168.fastdex.build.extension.FastdexExtension
-import com.dx168.fastdex.build.snapshoot.utils.SerializeUtils
+import fastdex.common.utils.SerializeUtils
 import com.dx168.fastdex.build.util.LibDependency
 import com.dx168.fastdex.build.util.MetaInfo
 import com.dx168.fastdex.build.util.ProjectSnapshoot
@@ -9,7 +9,6 @@ import com.dx168.fastdex.build.util.FastdexUtils
 import fastdex.common.utils.FileUtils
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.TagManager
-import com.github.typ0520.fastdex.Version
 import org.gradle.api.GradleException
 import org.gradle.api.Project
 

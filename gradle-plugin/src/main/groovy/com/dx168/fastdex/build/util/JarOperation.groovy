@@ -4,7 +4,7 @@ import com.android.build.api.transform.DirectoryInput
 import com.android.build.api.transform.JarInput
 import com.android.build.api.transform.TransformInput
 import com.android.build.api.transform.TransformInvocation
-import com.dx168.fastdex.build.snapshoot.api.DiffResultSet
+import fastdex.build.lib.snapshoot.api.DiffResultSet
 import com.dx168.fastdex.build.variant.FastdexVariant
 import fastdex.common.utils.FileUtils
 import org.apache.tools.ant.taskdefs.condition.Os

@@ -1,7 +1,7 @@
 package com.dx168.fastdex.build.task
 
-import com.dx168.fastdex.build.snapshoot.sourceset.PathInfo
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetDiffResultSet
+import fastdex.build.lib.snapshoot.sourceset.PathInfo
+import fastdex.build.lib.snapshoot.sourceset.SourceSetDiffResultSet
 import com.dx168.fastdex.build.util.FastdexUtils
 import fastdex.common.utils.FileUtils
 import com.dx168.fastdex.build.variant.FastdexVariant

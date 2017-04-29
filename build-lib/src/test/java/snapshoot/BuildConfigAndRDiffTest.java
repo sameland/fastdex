@@ -1,18 +1,15 @@
 package snapshoot;
 
-import com.dx168.fastdex.build.snapshoot.api.DiffResultSet;
-import com.dx168.fastdex.build.snapshoot.file.FileSuffixFilter;
-import com.dx168.fastdex.build.snapshoot.file.ScanFilter;
-import com.dx168.fastdex.build.snapshoot.sourceset.JavaDirectorySnapshoot;
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetSnapshoot;
+import fastdex.build.lib.snapshoot.api.DiffResultSet;
+import fastdex.build.lib.snapshoot.file.FileSuffixFilter;
+import fastdex.build.lib.snapshoot.file.ScanFilter;
+import fastdex.build.lib.snapshoot.sourceset.JavaDirectorySnapshoot;
+import fastdex.build.lib.snapshoot.sourceset.SourceSetSnapshoot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import junit.framework.TestCase;
 import org.junit.Test;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
 /**
  * Created by tong on 17/3/31.

@@ -1,10 +1,10 @@
 package com.dx168.fastdex.build.util
 
-import com.dx168.fastdex.build.snapshoot.sourceset.JavaDirectorySnapshoot
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetDiffResultSet
-import com.dx168.fastdex.build.snapshoot.sourceset.SourceSetSnapshoot
-import com.dx168.fastdex.build.snapshoot.string.StringNode
-import com.dx168.fastdex.build.snapshoot.string.StringSnapshoot
+import fastdex.build.lib.snapshoot.sourceset.JavaDirectorySnapshoot
+import fastdex.build.lib.snapshoot.sourceset.SourceSetDiffResultSet
+import fastdex.build.lib.snapshoot.sourceset.SourceSetSnapshoot
+import fastdex.build.lib.snapshoot.string.StringNode
+import fastdex.build.lib.snapshoot.string.StringSnapshoot
 import com.dx168.fastdex.build.variant.FastdexVariant
 import org.gradle.api.Project
 import fastdex.common.utils.FileUtils

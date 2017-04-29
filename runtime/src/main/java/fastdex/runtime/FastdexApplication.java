@@ -10,6 +10,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Process;
 import android.util.Log;
+
+import fastdex.runtime.fastdex.Fastdex;
 import fastdex.runtime.fd.AppInfo;
 import fastdex.runtime.fd.Logging;
 import fastdex.runtime.fd.MonkeyPatcher;
@@ -61,8 +63,8 @@ public class FastdexApplication extends Application {
     protected void attachBaseContext(Context context) {
         super.attachBaseContext(context);
         MultiDex.install(context);
-        Fastdex.getInstance().init(context);
         fixGoogleMultiDex(context);
+        Fastdex.get(context).onAttachBaseContext();
         createRealApplication(context);
 
         if (this.realApplication != null) {

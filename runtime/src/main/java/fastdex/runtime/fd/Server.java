@@ -15,19 +15,19 @@
  */
 package fastdex.runtime.fd;
 
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_EOF;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_PATCHES;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_PATH_CHECKSUM;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_PATH_EXISTS;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_PING;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_RESTART_ACTIVITY;
-import static com.android.tools.fd.common.ProtocolConstants.MESSAGE_SHOW_TOAST;
-import static com.android.tools.fd.common.ProtocolConstants.PROTOCOL_IDENTIFIER;
-import static com.android.tools.fd.common.ProtocolConstants.PROTOCOL_VERSION;
-import static com.android.tools.fd.common.ProtocolConstants.UPDATE_MODE_COLD_SWAP;
-import static com.android.tools.fd.common.ProtocolConstants.UPDATE_MODE_HOT_SWAP;
-import static com.android.tools.fd.common.ProtocolConstants.UPDATE_MODE_NONE;
-import static com.android.tools.fd.common.ProtocolConstants.UPDATE_MODE_WARM_SWAP;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_EOF;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_PATCHES;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_PATH_CHECKSUM;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_PATH_EXISTS;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_PING;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_RESTART_ACTIVITY;
+import static fastdex.common.fd.ProtocolConstants.MESSAGE_SHOW_TOAST;
+import static fastdex.common.fd.ProtocolConstants.PROTOCOL_IDENTIFIER;
+import static fastdex.common.fd.ProtocolConstants.PROTOCOL_VERSION;
+import static fastdex.common.fd.ProtocolConstants.UPDATE_MODE_COLD_SWAP;
+import static fastdex.common.fd.ProtocolConstants.UPDATE_MODE_HOT_SWAP;
+import static fastdex.common.fd.ProtocolConstants.UPDATE_MODE_NONE;
+import static fastdex.common.fd.ProtocolConstants.UPDATE_MODE_WARM_SWAP;
 
 import android.app.Activity;
 import android.content.Context;
@@ -36,6 +36,7 @@ import android.net.LocalSocket;
 import android.os.Handler;
 import android.util.Log;
 import dalvik.system.DexClassLoader;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;

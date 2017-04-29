@@ -1,11 +1,11 @@
 package com.dx168.fastdex.build.task
 
 import com.android.ddmlib.IDevice
-import com.android.tools.fd.common.ProtocolConstants
+
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.MetaInfo
-import com.github.typ0520.instantrun.client.Communicator
-import com.github.typ0520.instantrun.client.ServiceCommunicator
+import fastdex.build.lib.fd.Communicator
+import fastdex.build.lib.fd.ServiceCommunicator
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 

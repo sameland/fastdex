@@ -16,6 +16,8 @@
 
 package fastdex.runtime.fd;
 
+import java.io.File;
+
 /**
  * Shared path-related logic between Android Studio and the Instant Run server.
  */
@@ -32,16 +34,13 @@ public final class Paths {
     /** Name for reload dex files */
     public static final String RELOAD_DEX_FILE_NAME = "classes.dex.3";
 
-
     public static String getMainApkDataDirectory(String applicationId) {
         return "/data/data/" + applicationId;
     }
 
-
     public static String getDataDirectory(String applicationId) {
         return "/data/data/" + applicationId + "/files/fastdex-instant-run";
     }
-
 
     public static String getDeviceIdFolder(String pkg) {
         return DEVICE_TEMP_DIR + "/" + pkg + "-" + BUILD_ID_TXT;
