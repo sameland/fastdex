@@ -7,7 +7,7 @@ dependencies {
     compile project(':build-lib')
     compile 'com.android.tools.build:gradle:2.1.2'
 
-    compile project(':instant-run:instant-run-client')
+    //compile project(':instant-run:instant-run-client')
 }
 
 repositories {

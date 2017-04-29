@@ -7,7 +7,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 /**
- * 替换项目的Application为com.dx168.fastdex.runtime.FastdexApplication
+ * 替换项目的Application为fastdex.runtime.FastdexApplication
  * 并且在Manifest文件里中添加下面的节点
  * <meta-data android:name="FASTDEX_ORIGIN_APPLICATION_CLASSNAME" android:value="${项目真正的Application}"/>
  *
@@ -36,7 +36,7 @@ public class FastdexManifestTask extends DefaultTask {
             if (applicationName == null || applicationName.isEmpty()) {
                 applicationName = "android.app.Application"
             }
-            application.attributes().put(nameAttr, "com.dx168.fastdex.runtime.FastdexApplication")
+            application.attributes().put(nameAttr, "fastdex.runtime.FastdexApplication")
 
             def metaDataTags = application['meta-data']
 
@@ -55,7 +55,7 @@ public class FastdexManifestTask extends DefaultTask {
             printer.preserveWhitespace = true
             printer.print(xml)
         }
-//        File manifestFile = new File(fastdexVariant.manifestPath)
+        File manifestFile = new File(fastdexVariant.manifestPath)
 //        if (manifestFile.exists()) {
 //            File buildDir = FastdexUtils.getBuildDir(project,fastdexVariant.variantName)
 //            FileUtils.copyFileUsingStream(manifestFile, new File(buildDir,MANIFEST_XML))

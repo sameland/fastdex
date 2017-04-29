@@ -23,7 +23,7 @@ import java.nio.file.attribute.BasicFileAttributes
 
  dest class:
  ''''''
- import com.dx168.fastdex.runtime.antilazyload.AntilazyLoad;
+ import fastdex.runtime.antilazyload.AntilazyLoad;
 
  public class MainActivity {
  public MainActivity() {
@@ -31,7 +31,7 @@ import java.nio.file.attribute.BasicFileAttributes
  }
  }
  ''''''
- * 代码注入，往所有的构造方法中添加对com.dx168.fastdex.runtime.antilazyload.AntilazyLoad的依赖
+ * 代码注入，往所有的构造方法中添加对fastdex.runtime.antilazyload.AntilazyLoad的依赖
  * Created by tong on 17/10/3.
  */
 public class ClassInject implements Opcodes {
@@ -250,7 +250,7 @@ public class ClassInject implements Opcodes {
                 Label l0 = new Label();
                 super.visitJumpInsn(IFEQ, l0);
                 mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;");
-                mv.visitFieldInsn(GETSTATIC, "com/dx168/fastdex/runtime/antilazyload/AntilazyLoad", "str", "Ljava/lang/String;");
+                mv.visitFieldInsn(GETSTATIC, "fastdex/runtime/antilazyload/AntilazyLoad", "str", "Ljava/lang/String;");
                 mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/String;)V", false);
                 super.visitLabel(l0);
             }
