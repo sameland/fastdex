@@ -27,7 +27,7 @@ public class Fastdex {
         if (instance == null) {
             synchronized (Fastdex.class) {
                 if (instance == null) {
-                    instance = new Fastdex(context.getApplicationContext());
+                    instance = new Fastdex(context);
                 }
             }
         }

@@ -76,8 +76,6 @@ public class FastdexApplication extends Application {
             } catch (Exception e) {
                 throw new IllegalStateException(e);
             }
-
-            MonkeyPatcher.monkeyPatchApplication(this,this,realApplication);
         }
     }
 
@@ -135,6 +133,7 @@ public class FastdexApplication extends Application {
             startServer();
         }
         if (this.realApplication != null) {
+            MonkeyPatcher.monkeyPatchApplication(this,this,realApplication);
             this.realApplication.onCreate();
         }
     }
