@@ -1,6 +1,8 @@
 package com.dx168.fastdex.build.task
 
+import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
+import com.dx168.fastdex.build.util.FastdexRuntimeException
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.MetaInfo
 import com.dx168.fastdex.build.variant.FastdexVariant
@@ -14,18 +16,54 @@ import org.gradle.api.tasks.TaskAction
  */
 public class FastdexInstantRunTask extends DefaultTask {
     FastdexVariant fastdexVariant;
-    IDevice device
-    ServiceCommunicator serviceCommunicator
-    String packageName
 
     FastdexInstantRunTask() {
         group = 'fastdex'
     }
 
+    private void waitForDevice(AndroidDebugBridge bridge) {
+        int count = 0;
+        while (!bridge.hasInitialDeviceList()) {
+            try {
+                Thread.sleep(100);
+                count++;
+            } catch (InterruptedException ignored) {
+            }
+            if (count > 300) {
+                throw new FastdexRuntimeException("Connect adb timeout!!")
+            }
+        }
+    }
+
+    IDevice preparedDevice() {
+        AndroidDebugBridge.initIfNeeded(false)
+        AndroidDebugBridge bridge =
+                AndroidDebugBridge.createBridge("/Users/tong/Applications/android-sdk-macosx/platform-tools/adb", false)
+        waitForDevice(bridge)
+        IDevice[] devices = bridge.getDevices()
+        IDevice device = null
+
+        if (devices != null && devices.length > 0) {
+            device = devices[0]
+        }
+
+        if (device == null) {
+            throw new FastdexRuntimeException("Device not found!!")
+        }
+
+        if (devices.length > 1) {
+            throw new FastdexRuntimeException("Find multiple devices!!")
+        }
+        project.logger.error("==fastdex device connected ${device.toString()}")
+        return device
+    }
+
     @TaskAction
     void instantRun() {
-        packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
-        serviceCommunicator = new ServiceCommunicator(packageName)
+        IDevice device = preparedDevice()
+
+        String packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
+        ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
         try {
             MetaInfo runtimeMetaInfo = serviceCommunicator.talkToService(device, new Communicator<MetaInfo>() {
                 @Override
@@ -40,18 +78,14 @@ public class FastdexInstantRunTask extends DefaultTask {
                 }
             })
             project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
-
-
-            if (fastdexVariantInstantRunTask == null) {
-                project.logger.error("==fastdex ${runtimeMetaInfo.variantName} not found!")
+            if (fastdexVariant.metaInfo.buildMillis != runtimeMetaInfo.buildMillis) {
                 throw new IOException("")
             }
-            else {
-                project.logger.error("==fastdex instant run for ${runtimeMetaInfo.variantName}")
-                fastdexVariantInstantRunTask.execute()
+            if (!fastdexVariant.metaInfo.variantName.equals(runtimeMetaInfo.variantName)) {
+                throw new IOException("")
             }
-        } catch (IOException e) {
 
+        } catch (IOException e) {
 //            if (!"debug".equalsIgnoreCase(variant.buildType.name as String)) {
 //                println "variant ${variant.name} is not debug, skip hack process."
 //                return
