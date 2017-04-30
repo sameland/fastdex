@@ -1,4 +1,4 @@
-//rootProject.name = 'com.github.typ0520'
+rootProject.name = 'com.github.typ0520'
 
 include ':fastdex-common'
 include ':gradle-plugin'

@@ -37,6 +37,7 @@ import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import dalvik.system.DexClassLoader;
+import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 import fastdex.runtime.fastdex.Fastdex;
@@ -276,7 +277,7 @@ public class Server {
                         // Send an "ack" back to the IDE; this is used for timing purposes only
                         output.writeBoolean(true);
 
-                        //restart(updateMode, hasResources, showToast);
+                        restart(updateMode, hasResources, showToast);
                         continue;
                     }
 
@@ -508,7 +509,7 @@ public class Server {
             Log.v(Logging.LOG_TAG, "Received incremental code patch");
         }
         try {
-            File tempDexDir = new File(workDir, Constants.RES_DIR + "/");
+            File tempDexDir = new File(workDir, Constants.DEX_DIR + "/");
             FileUtils.write2file(patch.getBytes(),new File(tempDexDir,patch.getPath()));
         } catch (Throwable e) {
             Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);

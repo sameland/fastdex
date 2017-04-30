@@ -10,18 +10,17 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Process;
 import android.util.Log;
-
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Set;
 import fastdex.runtime.fastdex.Fastdex;
 import fastdex.runtime.fd.AppInfo;
 import fastdex.runtime.fd.Logging;
 import fastdex.runtime.fd.MonkeyPatcher;
 import fastdex.runtime.fd.Server;
 import fastdex.runtime.multidex.MultiDex;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Created by tong on 17/3/11.

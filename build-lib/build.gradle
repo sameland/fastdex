@@ -8,8 +8,8 @@ targetCompatibility = 1.7
 
 dependencies {
     compile project(':fastdex-common')
-    compile 'com.google.code.gson:gson:2.3.1'
     compile 'org.apache.ant:ant:1.8.2'
+    compile 'com.google.guava:guava:18.0'
     compile 'com.android.tools.ddms:ddmlib:25.3.1'
 
     testCompile 'junit:junit:4.12'

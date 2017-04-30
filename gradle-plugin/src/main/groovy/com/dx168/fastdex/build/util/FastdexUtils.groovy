@@ -224,6 +224,17 @@ public class FastdexUtils {
     }
 
     /**
+     * 获取指定variantName的补丁merged-dex文件
+     * @param project
+     * @param variantName
+     * @return
+     */
+    public static final File getMergedPatchDex(Project project,String variantName) {
+        File file = new File(getMergedPatchDexDir(project,variantName),Constants.CLASSES_DEX);
+        return file;
+    }
+
+    /**
      * 获取指定variantName的源码目录快照
      * @param project
      * @return

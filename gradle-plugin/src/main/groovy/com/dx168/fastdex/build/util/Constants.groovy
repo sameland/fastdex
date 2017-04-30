@@ -15,7 +15,7 @@ public interface Constants extends ShareConstants {
     String R_TXT = "r.txt"
     String RESOURCE_PUBLIC_XML = "public.xml"
     String RESOURCE_IDX_XML = "idx.xml"
-    String RUNTIME_DEX_FILENAME = "com.dx168.fastdex.runtime.dex"
+    String RUNTIME_DEX_FILENAME = "fastdex-runtime.dex"
     String DEPENDENCIES_FILENAME = "dependencies.json"
     String SOURCESET_SNAPSHOOT_FILENAME = "sourceSets.json"
     String LAST_DIFF_RESULT_SET_FILENAME = "lastDiffResultSet.json"
