@@ -420,7 +420,6 @@ public class Server {
 
         Fastdex fastdex = Fastdex.get(context);
         File workDir = new File(fastdex.getTempDirectory(),System.currentTimeMillis() + "-" + UUID.randomUUID().toString());
-
         try {
             for (ApplicationPatch change : changes) {
                 String path = change.getPath();
@@ -430,6 +429,9 @@ public class Server {
                     updateMode = handleResourcePatch(updateMode, change, path,workDir);
                 }
             }
+
+            fastdex.getRuntimeMetaInfo().setPreparedPatchPath(workDir.getAbsolutePath());
+            fastdex.getRuntimeMetaInfo().save(fastdex);
         } catch (Throwable e) {
             return UPDATE_MODE_NONE;
         }

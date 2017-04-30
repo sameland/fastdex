@@ -13,6 +13,7 @@ import org.gradle.util.Clock;
 import com.dx168.fastdex.build.FastdexPlugin
 import com.github.typ0520.fastdex.Version
 import java.lang.management.ManagementFactory
+import fastdex.common.utils.FileUtils
 
 /**
  * Created by tong on 17/3/12.

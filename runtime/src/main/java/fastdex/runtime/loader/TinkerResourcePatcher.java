@@ -58,7 +58,7 @@ public class TinkerResourcePatcher {
     private static Field resourcePackagesFiled = null;
     private static Field publicSourceDirField  = null;
 
-    public static void isResourceCanPatch(Context context) throws Throwable {
+    private static void isResourceCanPatch(Context context) throws Throwable {
         //   - Replace mResDir to point to the external resource file instead of the .apk. This is
         //     used as the asset path for new Resources objects.
         //   - Set Application#mLoadedApk to the found LoadedApk instance
@@ -153,6 +153,7 @@ public class TinkerResourcePatcher {
      * @throws Throwable
      */
     public static void monkeyPatchExistingResources(Context context, String externalResourceFile) throws Throwable {
+        isResourceCanPatch(context);
         if (externalResourceFile == null) {
             return;
         }

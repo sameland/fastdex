@@ -1,13 +1,16 @@
 package fastdex.runtime.fastdex;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.Log;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 import fastdex.runtime.FastdexRuntimeException;
+import fastdex.runtime.loader.TinkerResourcePatcher;
 
 /**
  * Created by tong on 17/4/29.
@@ -20,8 +23,8 @@ public class Fastdex {
     final RuntimeMetaInfo runtimeMetaInfo;
     final File patchDirectory;
     final File tempDirectory;
-    final File dexDirectory;
-    final File resourceDirectory;
+//    final File dexDirectory;
+//    final File resourceDirectory;
     private boolean fastdexEnabled = true;
 
     public static Fastdex get(Context context) {
@@ -42,8 +45,8 @@ public class Fastdex {
 
         patchDirectory = new File(applicationContext.getFilesDir(), Constants.PATCH_DIR);
         tempDirectory = new File(patchDirectory,Constants.TEMP_DIR);
-        dexDirectory = new File(patchDirectory,Constants.DEX_DIR);
-        resourceDirectory = new File(patchDirectory,Constants.RES_DIR);
+//        dexDirectory = new File(patchDirectory,Constants.DEX_DIR);
+//        resourceDirectory = new File(patchDirectory,Constants.RES_DIR);
 
         RuntimeMetaInfo metaInfo = RuntimeMetaInfo.load(this);
         RuntimeMetaInfo assetsMetaInfo = null;
@@ -88,8 +91,37 @@ public class Fastdex {
     }
 
     public void onAttachBaseContext() {
+        if (!fastdexEnabled) {
+            return;
+        }
+        if (!TextUtils.isEmpty(runtimeMetaInfo.getPreparedPatchPath())) {
+            if (!TextUtils.isEmpty(runtimeMetaInfo.getLastPatchPath())) {
+                FileUtils.deleteDir(new File(runtimeMetaInfo.getLastPatchPath()));
+            }
+            File preparedPatchDir = new File(runtimeMetaInfo.getPreparedPatchPath());
+            File patchDir = new File(patchDirectory,preparedPatchDir.getName());
+            try {
+                FileUtils.copyDir(preparedPatchDir,patchDir);
+            } catch (IOException e) {
+                throw new FastdexRuntimeException(e);
+            }
+            runtimeMetaInfo.setLastPatchPath(runtimeMetaInfo.getPatchPath());
+            runtimeMetaInfo.setPreparedPatchPath(null);
+            runtimeMetaInfo.save(this);
+        }
 
-        //FileUtils.cleanDir(tempDirectory);
+        if (TextUtils.isEmpty(runtimeMetaInfo.getPatchPath())) {
+            return;
+        }
+
+        final File dexDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.DEX_DIR);
+        final File resourceDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.RES_DIR);
+
+        File resourceApkFile = new File(resourceDirectory,Constants.RESOURCE_APK_FILE_NAME);
+        if (FileUtils.isLegalFile(resourceApkFile)) {
+            Log.d(LOG_TAG,"");
+            TinkerResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile);
+        }
     }
 
     public File getPatchDirectory() {

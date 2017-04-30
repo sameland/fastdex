@@ -1,7 +1,6 @@
 package com.dx168.fastdex.sample;
 
 import android.app.Activity;
-import android.net.LocalSocket;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -65,7 +64,7 @@ public class MainActivity extends Activity {
         sb.append("\n");
         sb.append(getResources().getString(common3str));
         sb.append("\n");
-        sb.append("haha123");
+        sb.append("haha");
 
         Log.d(TAG,"sb: \n" + sb.toString());
         Toast.makeText(this, sb.toString(),Toast.LENGTH_LONG).show();

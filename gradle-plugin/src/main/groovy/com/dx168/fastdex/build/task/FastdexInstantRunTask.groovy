@@ -118,22 +118,24 @@ public class FastdexInstantRunTask extends DefaultTask {
                     output.writeLong(0L)
                     output.writeInt(changeCount)
 
+                    project.logger.error("==fastdex write ${ShareConstants.RESOURCE_APK_FILE_NAME}")
                     output.writeUTF(ShareConstants.RESOURCE_APK_FILE_NAME)
                     byte[] bytes = FileUtils.readContents(resourcesApk)
                     output.writeInt(bytes.length)
-                    output.writeBytes(bytes)
-
+                    output.write(bytes)
                     if (FileUtils.isLegalFile(mergedPatchDex)) {
+                        project.logger.error("==fastdex write ${mergedPatchDex}")
                         output.writeUTF(ShareConstants.MERGED_PATCH_DEX)
                         bytes = FileUtils.readContents(mergedPatchDex)
                         output.writeInt(bytes.length)
-                        output.writeBytes(bytes)
+                        output.write(bytes)
                     }
                     if (FileUtils.isLegalFile(patchDex)) {
+                        project.logger.error("==fastdex write ${patchDex}")
                         output.writeUTF(ShareConstants.PATCH_DEX)
                         bytes = FileUtils.readContents(patchDex)
                         output.writeInt(bytes.length)
-                        output.writeBytes(bytes)
+                        output.write(bytes)
                     }
 
                     output.writeInt(ProtocolConstants.UPDATE_MODE_WARM_SWAP)
@@ -143,8 +145,7 @@ public class FastdexInstantRunTask extends DefaultTask {
                 }
             })
             if (result) {
-                project.logger.error("==fastdex instant run success.....")
-                System.exit(0)
+                project.logger.error("==fastdex send patch data success.....")
             }
         } catch (IOException e) {
             e.printStackTrace()

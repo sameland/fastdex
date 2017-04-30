@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.common.utils.SerializeUtils;
@@ -21,6 +20,12 @@ public class RuntimeMetaInfo {
     private long buildMillis;
 
     private String variantName;
+
+    private String lastPatchPath;
+
+    private String patchPath;
+
+    private String preparedPatchPath;
 
     public long getBuildMillis() {
         return buildMillis;
@@ -38,6 +43,29 @@ public class RuntimeMetaInfo {
         this.variantName = variantName;
     }
 
+    public String getLastPatchPath() {
+        return lastPatchPath;
+    }
+
+    public void setLastPatchPath(String lastPatchPath) {
+        this.lastPatchPath = lastPatchPath;
+    }
+
+    public String getPatchPath() {
+        return patchPath;
+    }
+
+    public void setPatchPath(String patchPath) {
+        this.patchPath = patchPath;
+    }
+
+    public String getPreparedPatchPath() {
+        return preparedPatchPath;
+    }
+
+    public void setPreparedPatchPath(String preparedPatchPath) {
+        this.preparedPatchPath = preparedPatchPath;
+    }
 
     @Override
     public boolean equals(Object o) {
