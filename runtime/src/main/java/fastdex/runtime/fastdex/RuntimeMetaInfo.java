@@ -4,6 +4,8 @@ import android.util.Log;
 import com.google.gson.Gson;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.common.utils.SerializeUtils;
@@ -36,11 +38,32 @@ public class RuntimeMetaInfo {
         this.variantName = variantName;
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RuntimeMetaInfo metaInfo = (RuntimeMetaInfo) o;
+
+        if (buildMillis != metaInfo.buildMillis) return false;
+        return variantName != null ? variantName.equals(metaInfo.variantName) : metaInfo.variantName == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = (int) (buildMillis ^ (buildMillis >>> 32));
+        result = 31 * result + (variantName != null ? variantName.hashCode() : 0);
+        return result;
+    }
+
     public void save(Fastdex fastdex) {
         File metaInfoFile = new File(fastdex.patchDirectory, ShareConstants.META_INFO_FILENAME);
         try {
             SerializeUtils.serializeTo(metaInfoFile,this);
         } catch (IOException e) {
+            e.printStackTrace();
             Log.e(Logging.LOG_TAG,e.getMessage());
         }
     }
@@ -49,6 +72,26 @@ public class RuntimeMetaInfo {
         File metaInfoFile = new File(fastdex.patchDirectory, ShareConstants.META_INFO_FILENAME);
         try {
             return new Gson().fromJson(new String(FileUtils.readContents(metaInfoFile)),RuntimeMetaInfo.class);
+        } catch (Throwable e) {
+            Log.e(Logging.LOG_TAG,e.getMessage());
+        }
+
+        return null;
+    }
+
+    public static RuntimeMetaInfo load(InputStream is) {
+        try {
+            return new Gson().fromJson(new String(FileUtils.readStream(is)),RuntimeMetaInfo.class);
+        } catch (Throwable e) {
+            Log.e(Logging.LOG_TAG,e.getMessage());
+        }
+
+        return null;
+    }
+
+    public static RuntimeMetaInfo load(String json) {
+        try {
+            return new Gson().fromJson(json,RuntimeMetaInfo.class);
         } catch (Throwable e) {
             Log.e(Logging.LOG_TAG,e.getMessage());
         }

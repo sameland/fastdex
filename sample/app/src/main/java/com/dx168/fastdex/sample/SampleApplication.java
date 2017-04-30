@@ -13,12 +13,6 @@ public class SampleApplication extends android.app.Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        try {
-            getAssets().open("ass.txt");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override

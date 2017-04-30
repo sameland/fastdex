@@ -68,6 +68,8 @@ project.afterEvaluate {
                 from outDex
                 into project.rootProject.file('gradle-plugin/src/main/resources')
             }
+
+            project.file("build/intermediates/classes/release").deleteDir()
         }
     }
 }

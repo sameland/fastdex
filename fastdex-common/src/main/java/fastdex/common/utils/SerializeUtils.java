@@ -30,6 +30,7 @@ public class SerializeUtils {
     public static void serializeTo(File file,Object obj) throws IOException {
         String json = GSON.toJson(obj);
         FileOutputStream outputStream = null;
+        FileUtils.ensumeDir(file.getParentFile());
         try {
             outputStream = new FileOutputStream(file);
             outputStream.write(json.getBytes());

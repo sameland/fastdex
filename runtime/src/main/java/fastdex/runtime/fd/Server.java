@@ -34,14 +34,10 @@ import android.content.Context;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.util.Log;
-import dalvik.system.DexClassLoader;
-import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 import fastdex.runtime.fastdex.Fastdex;
-
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
@@ -233,6 +229,8 @@ public class Server {
                 return;
             }
 
+            Fastdex fastdex = Fastdex.get(context);
+
             while (true) {
                 int message = input.readInt();
                 switch (message) {
@@ -249,8 +247,11 @@ public class Server {
                         // foreground.
                         boolean active = Restarter.getForegroundActivity(context) != null;
                         output.writeBoolean(active);
-                        output.writeLong(1493250647829L);
-                        output.writeUTF("Debug");
+
+                        long buildMillis = fastdex.getRuntimeMetaInfo().getBuildMillis();
+                        output.writeLong(buildMillis);
+                        String variantName = fastdex.getRuntimeMetaInfo().getVariantName();
+                        output.writeUTF(variantName);
                         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
                             Log.v(Logging.LOG_TAG, "Received Ping message from the IDE; " +
                                     "returned active = " + active);

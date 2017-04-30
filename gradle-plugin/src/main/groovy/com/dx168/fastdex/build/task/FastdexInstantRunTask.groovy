@@ -92,10 +92,10 @@ public class FastdexInstantRunTask extends DefaultTask {
             })
             project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
             if (fastdexVariant.metaInfo.buildMillis != runtimeMetaInfo.buildMillis) {
-                throw new IOException("")
+                throw new IOException("buildMillis not equal")
             }
             if (!fastdexVariant.metaInfo.variantName.equals(runtimeMetaInfo.variantName)) {
-                throw new IOException("")
+                throw new IOException("variantName not equal")
             }
 
             File resourcesApk = new File(fastdexVariant.buildDir,ShareConstants.RESOURCE_APK_FILE_NAME)
@@ -142,7 +142,13 @@ public class FastdexInstantRunTask extends DefaultTask {
                     return input.readBoolean()
                 }
             })
+            if (result) {
+                project.logger.error("==fastdex instant run success.....")
+                System.exit(0)
+            }
         } catch (IOException e) {
+            e.printStackTrace()
+
 //            if (!"debug".equalsIgnoreCase(variant.buildType.name as String)) {
 //                println "variant ${variant.name} is not debug, skip hack process."
 //                return
@@ -169,7 +175,6 @@ public class FastdexInstantRunTask extends DefaultTask {
         }
 
         project.logger.error("==fastdex normalRun ${targetVariantName}")
-        targetVariant.assemble.invoke()
         //卸载已存在app
         //安装app
         //启动第一个activity

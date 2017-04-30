@@ -7,6 +7,7 @@ import java.io.InputStream;
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
+import fastdex.runtime.FastdexRuntimeException;
 
 /**
  * Created by tong on 17/4/29.
@@ -45,23 +46,41 @@ public class Fastdex {
         resourceDirectory = new File(patchDirectory,Constants.RES_DIR);
 
         RuntimeMetaInfo metaInfo = RuntimeMetaInfo.load(this);
-        if (metaInfo == null) {
-            try {
-                InputStream is = applicationContext.getAssets().open(ShareConstants.META_INFO_FILENAME);
-                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
-                FileUtils.write2file(FileUtils.readStream(is),metaInfoFile);
-                metaInfo = RuntimeMetaInfo.load(this);
-            } catch (Throwable e) {
-                Log.d(LOG_TAG,"fastdex disabled: " + e.getMessage());
+        RuntimeMetaInfo assetsMetaInfo = null;
+        try {
+            InputStream is = applicationContext.getAssets().open(ShareConstants.META_INFO_FILENAME);
+            String assetsMetaInfoJson = new String(FileUtils.readStream(is));
+            assetsMetaInfo = RuntimeMetaInfo.load(assetsMetaInfoJson);
+            if (assetsMetaInfo == null) {
+                throw new NullPointerException("AssetsMetaInfo can not be null!!!");
             }
-        }
-        this.runtimeMetaInfo = metaInfo;
-        if (this.runtimeMetaInfo == null) {
-            fastdexEnabled = false;
+            Log.d(Fastdex.LOG_TAG,"load meta-info from assets: \n" + assetsMetaInfoJson);
+            if (metaInfo == null) {
+                assetsMetaInfo.save(this);
+                metaInfo = assetsMetaInfo;
+                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
+                if (!FileUtils.isLegalFile(metaInfoFile)) {
+                    throw new FastdexRuntimeException("save meta-info fail: " + metaInfoFile.getAbsolutePath());
+                }
+            }
+            else if (!metaInfo.equals(assetsMetaInfo)) {
+                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
+                String metaInfoJson = new String(FileUtils.readContents(metaInfoFile));
+                Log.d(Fastdex.LOG_TAG,"load meta-info from files: \n" + metaInfoJson);
+                Log.d(Fastdex.LOG_TAG,"meta-info content changed clean");
 
-            FileUtils.cleanDir(patchDirectory);
-            FileUtils.cleanDir(tempDirectory);
+                FileUtils.cleanDir(patchDirectory);
+                FileUtils.cleanDir(tempDirectory);
+                assetsMetaInfo.save(this);
+                metaInfo = assetsMetaInfo;
+            }
+        } catch (Throwable e) {
+            e.printStackTrace();
+            fastdexEnabled = false;
+            Log.d(LOG_TAG,"fastdex disabled: " + e.getMessage());
         }
+
+        this.runtimeMetaInfo = metaInfo;
     }
 
     public Context getApplicationContext() {
@@ -69,11 +88,20 @@ public class Fastdex {
     }
 
     public void onAttachBaseContext() {
-        FileUtils.cleanDir(tempDirectory);
+
+        //FileUtils.cleanDir(tempDirectory);
+    }
+
+    public File getPatchDirectory() {
+        return patchDirectory;
     }
 
     public File getTempDirectory() {
         return tempDirectory;
+    }
+
+    public RuntimeMetaInfo getRuntimeMetaInfo() {
+        return runtimeMetaInfo;
     }
 
     public boolean isFastdexEnabled() {

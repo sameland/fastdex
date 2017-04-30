@@ -19,9 +19,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-
-import static fastdex.runtime.fd.Log.logging;
+import fastdex.runtime.fastdex.Fastdex;
+import android.util.Log;
 
 // This class is used in both the Android runtime and in the IDE.
 // Technically we only need the write protocol on the IDE side and the
@@ -48,10 +47,7 @@ public class ApplicationPatch {
     public static List<ApplicationPatch> read(DataInputStream input) throws IOException {
         int changeCount = input.readInt();
 
-        if (logging != null && logging.isLoggable(Level.FINE)) {
-            logging.log(Level.FINE, "Receiving " + changeCount + " changes");
-        }
-
+        Log.d(Fastdex.LOG_TAG, "Receiving " + changeCount + " changes");
         List<ApplicationPatch> changes = new ArrayList<ApplicationPatch>(changeCount);
         for (int i = 0; i < changeCount; i++) {
             String path = input.readUTF();
@@ -59,6 +55,8 @@ public class ApplicationPatch {
             byte[] bytes = new byte[size];
             input.readFully(bytes);
             changes.add(new ApplicationPatch(path, bytes));
+
+            Log.d(Fastdex.LOG_TAG, "Receiving path: " + path);
         }
 
         return changes;
