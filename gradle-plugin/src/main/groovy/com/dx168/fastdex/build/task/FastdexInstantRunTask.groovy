@@ -12,22 +12,15 @@ import fastdex.build.lib.fd.ServiceCommunicator
 import fastdex.common.ShareConstants
 import fastdex.common.fd.ProtocolConstants
 import fastdex.common.utils.FileUtils
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
-import java.nio.file.FileVisitResult
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 /**
  * Created by tong on 17/3/12.
  */
 public class FastdexInstantRunTask extends DefaultTask {
     FastdexVariant fastdexVariant
+    File resourceApFile
     String resDir
 
     FastdexInstantRunTask() {
@@ -182,64 +175,81 @@ public class FastdexInstantRunTask extends DefaultTask {
     }
 
     def generateResourceApk(File resourcesApk) {
-        ZipOutputStream outputJarStream = null
+        long start = System.currentTimeMillis()
+        File tempDir = new File(fastdexVariant.buildDir,"temp")
+        File tempResourcesApk = new File(tempDir,resourcesApk.getName())
+        FileUtils.cleanDir(tempDir)
+        //File resourceAp = new File(project.buildDir,"intermediates${File.separator}res${File.separator}resources-debug.ap_")
+        //java -cp {sdk.dir}/tools/lib/sdklib.jar com.android.sdklib.build.ApkBuilderMain resources.apk -z resources-debug.ap_
+        String sdklibPath = new File(FastdexUtils.getSdkDirectory(project),"tools${File.separator}lib${File.separator}sdklib.jar").absolutePath
+
+        def process = new ProcessBuilder(FastdexUtils.getJavaCmdPath(),"-cp",sdklibPath,"com.android.sdklib.build.ApkBuilderMain",resourcesApk.absolutePath,"-v","-u","-z",resourceApFile.absolutePath).start()
+        int status = process.waitFor()
         try {
-            outputJarStream = new ZipOutputStream(new FileOutputStream(resourcesApk))
+            process.destroy()
+        } catch (Throwable e) {
 
-            Path resPath = new File(resDir).toPath()
-            Files.walkFileTree(resPath,new SimpleFileVisitor<Path>(){
-                @Override
-                FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toFile().getName().endsWith(".")) {
-                        return FileVisitResult.CONTINUE;
-                    }
-                    Path relativePath = resPath.relativize(file)
-                    String entryName = "res/${relativePath.toString()}"
-                    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                        entryName = entryName.replace("\\", "/");
-                    }
+        }
 
-                    ZipEntry e = new ZipEntry(entryName)
-                    outputJarStream.putNextEntry(e)
-                    byte[] bytes = FileUtils.readContents(file.toFile())
-                    outputJarStream.write(bytes,0,bytes.length)
-                    outputJarStream.closeEntry()
-                    return FileVisitResult.CONTINUE
-                }
-            })
+        String cmd = "java -cp ${sdklibPath} com.android.sdklib.build.ApkBuilderMain ${resourcesApk} -v -u -z ${resourceApFile}"
+        if (fastdexVariant.configuration.debug) {
+            project.logger.error("==fastdex create resources.apk cmd:\n${cmd}")
+        }
+        if (status != 0) {
+            throw new RuntimeException("==fastdex generate resources.apk fail: \n${cmd}")
+        }
 
-            Path assetsPath = new File(project.buildDir,"intermediates${File.separator}assets${File.separator}${fastdexVariant.androidVariant.dirName}").toPath()
-            Files.walkFileTree(assetsPath,new SimpleFileVisitor<Path>(){
-                @Override
-                FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if (file.toFile().getName().endsWith(".")) {
-                        return FileVisitResult.CONTINUE;
-                    }
-                    Path relativePath = assetsPath.relativize(file)
-                    String entryName = "assets/${relativePath.toString()}"
-                    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                        entryName = entryName.replace("\\", "/");
-                    }
+        File assetsPath = fastdexVariant.androidVariant.getVariantData().getScope().getMergeAssetsOutputDir()
+        List<String> assetFiles = getAssetFiles(assetsPath)
+        if (assetFiles.isEmpty()) {
+            return
+        }
+        File tempAssetsPath = new File(tempDir,"assets")
+        FileUtils.copyDir(assetsPath,tempAssetsPath)
 
-                    ZipEntry e = new ZipEntry(entryName)
-                    outputJarStream.putNextEntry(e)
-                    byte[] bytes = FileUtils.readContents(file.toFile())
-                    outputJarStream.write(bytes,0,bytes.length)
-                    outputJarStream.closeEntry()
-                    return FileVisitResult.CONTINUE
-                }
-            })
+        String[] cmds = new String[assetFiles.size() + 4]
+        cmds[0] = FastdexUtils.getAaptCmdPath(project)
+        cmds[1] = "add"
+        cmds[2] = "-f"
+        cmds[3] = resourcesApk.absolutePath
+        for (int i = 0; i < assetFiles.size(); i++) {
+            cmds[4 + i] = "assets/${assetFiles.get(i)}";
+        }
 
-            File resourceArsc = new File(project.buildDir,"intermediates${File.separator}res${File.separator}resources-debug.ap_")
-            ZipEntry e = new ZipEntry("resources.arsc")
-            outputJarStream.putNextEntry(e)
-            byte[] bytes = FileUtils.readContents(resourceArsc)
-            outputJarStream.write(bytes,0,bytes.length)
-            outputJarStream.closeEntry()
-        } finally {
-            if (outputJarStream != null) {
-                outputJarStream.close();
+        ProcessBuilder aaptProcess = new ProcessBuilder(cmds)
+        aaptProcess.directory(tempDir)
+        process = aaptProcess.start()
+        status = process.waitFor()
+        try {
+            process.destroy()
+        } catch (Throwable e) {
+
+        }
+
+        cmd = cmds.join(" ")
+        if (fastdexVariant.configuration.debug) {
+            project.logger.error("==fastdex add asset files into resources.apk. cmd:\n${cmd}")
+        }
+        if (status != 0) {
+            throw new RuntimeException("==fastdex add asset files into resources.apk fail. cmd:\n${cmd}")
+        }
+        long end = System.currentTimeMillis();
+        fastdexVariant.project.logger.error("==fastdex generate resources.apk success: \n==${resourcesApk} use: ${end - start}ms")
+    }
+
+    List<String> getAssetFiles(File dir) {
+        ArrayList<String> result = new ArrayList<>()
+        if (dir == null || !FileUtils.dirExists(dir.getAbsolutePath())) {
+            return result
+        }
+        if (dir.listFiles().length == 0) {
+            return result
+        }
+        for (File file : dir.listFiles()) {
+            if (file.isFile() && !file.getName().startsWith(".")) {
+                result.add(file.getName())
             }
         }
+        return result;
     }
 }

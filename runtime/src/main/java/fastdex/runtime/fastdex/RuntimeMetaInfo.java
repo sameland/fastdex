@@ -87,7 +87,7 @@ public class RuntimeMetaInfo {
     }
 
     public void save(Fastdex fastdex) {
-        File metaInfoFile = new File(fastdex.patchDirectory, ShareConstants.META_INFO_FILENAME);
+        File metaInfoFile = new File(fastdex.fastdexDirectory, ShareConstants.META_INFO_FILENAME);
         try {
             SerializeUtils.serializeTo(metaInfoFile,this);
         } catch (IOException e) {
@@ -97,7 +97,7 @@ public class RuntimeMetaInfo {
     }
 
     public static RuntimeMetaInfo load(Fastdex fastdex) {
-        File metaInfoFile = new File(fastdex.patchDirectory, ShareConstants.META_INFO_FILENAME);
+        File metaInfoFile = new File(fastdex.fastdexDirectory, ShareConstants.META_INFO_FILENAME);
         try {
             return new Gson().fromJson(new String(FileUtils.readContents(metaInfoFile)),RuntimeMetaInfo.class);
         } catch (Throwable e) {

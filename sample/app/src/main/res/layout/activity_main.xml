@@ -10,6 +10,10 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.dx168.fastdex.sample.MainActivity">
 
+    <include
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        layout="@layout/my_view" />
     <Button
         android:id="@+id/btn"
         android:layout_width="match_parent"
@@ -22,7 +26,7 @@
         android:layout_height="wrap_content"
         android:textColor="#ffffff"
         android:layout_centerInParent="true"
-        android:text="Fastdex sample"/>
+        android:text="Fastdex sample2222"/>
 
     <com.dx168.fastdex.sample.common.CommonView
         android:layout_width="wrap_content"

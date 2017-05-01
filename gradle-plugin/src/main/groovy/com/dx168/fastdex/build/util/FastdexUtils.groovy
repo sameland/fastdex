@@ -1,8 +1,5 @@
 package com.dx168.fastdex.build.util
 
-import com.android.build.api.transform.DirectoryInput
-import com.android.build.api.transform.TransformInput
-import com.android.build.api.transform.TransformInvocation
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Project
 import fastdex.common.utils.FileUtils
@@ -35,6 +32,19 @@ public class FastdexUtils {
             return "${dx.absolutePath}.bat"
         }
         return dx.getAbsolutePath()
+    }
+
+    /**
+     * 获取aapt命令路径
+     * @param project
+     * @return
+     */
+    public static final String getAaptCmdPath(Project project) {
+        File aapt = new File(FastdexUtils.getSdkDirectory(project),"build-tools${File.separator}${project.android.getBuildToolsVersion()}${File.separator}aapt")
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            return "${aapt.absolutePath}.exe"
+        }
+        return aapt.getAbsolutePath()
     }
 
     /**
@@ -79,67 +89,7 @@ public class FastdexUtils {
      */
     public static boolean hasDexCache(Project project, String variantName) {
         File cacheDexDir = getDexCacheDir(project,variantName)
-        return hasDex(cacheDexDir)
-    }
-
-    /**
-     * 目录中是否存在dex(classes.dex classesN.dex)
-     * @param dir
-     * @return
-     */
-    public static boolean hasDex(File dir) {
-        if (!FileUtils.dirExists(dir.getAbsolutePath())) {
-            return false;
-        }
-
-        //check dex
-        boolean result = false
-        for (File file : dir.listFiles()) {
-            if (file.getName().endsWith(Constants.DEX_SUFFIX)) {
-                result = true
-                break
-            }
-        }
-        return result
-    }
-
-    /**
-     * 获取所有编译的class存放目录
-     * @param invocation
-     * @return
-     */
-    public static Set<File> getDirectoryInputFiles(TransformInvocation invocation) {
-        Set<File> dirClasspaths = new HashSet<>();
-        for (TransformInput input : invocation.getInputs()) {
-            Collection<DirectoryInput> directoryInputs = input.getDirectoryInputs()
-            if (directoryInputs != null) {
-                for (DirectoryInput directoryInput : directoryInputs) {
-                    dirClasspaths.add(directoryInput.getFile())
-                }
-            }
-        }
-
-        return dirClasspaths
-    }
-
-    /**
-     * 获取缓存的依赖列表
-     * @param project
-     * @param variantName
-     * @return
-     */
-    public static Set<String> getCachedDependList(Project project,String variantName) {
-        Set<String> result = new HashSet<>()
-        File cachedDependListFile = FastdexUtils.getCachedDependListFile(project,variantName)
-        if (FileUtils.isLegalFile(cachedDependListFile)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(cachedDependListFile)))
-            String line = null
-            while ((line = reader.readLine()) != null) {
-                result.add(line)
-            }
-            reader.close()
-        }
-        return result
+        return FileUtils.hasDex(cacheDexDir)
     }
 
     /**

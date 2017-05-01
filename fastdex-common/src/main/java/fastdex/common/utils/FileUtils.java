@@ -13,6 +13,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import fastdex.common.ShareConstants;
+
 /**
  * Created by tong on 17/3/10.
  */
@@ -266,5 +268,27 @@ public class FileUtils {
 
     public static final void copyDir(File sourceDir, File destDir) throws IOException {
         copyDir(sourceDir,destDir,null);
+    }
+
+
+    /**
+     * 目录中是否存在dex
+     * @param dir
+     * @return
+     */
+    public static boolean hasDex(File dir) {
+        if (!dirExists(dir.getAbsolutePath())) {
+            return false;
+        }
+
+        //check dex
+        boolean result = false;
+        for (File file : dir.listFiles()) {
+            if (file.getName().endsWith(ShareConstants.DEX_SUFFIX)) {
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 }

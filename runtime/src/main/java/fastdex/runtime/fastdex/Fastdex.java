@@ -4,13 +4,17 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import dalvik.system.PathClassLoader;
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
+import fastdex.runtime.FastdexApplication;
 import fastdex.runtime.FastdexRuntimeException;
+import fastdex.runtime.loader.SystemClassLoaderAdder;
 import fastdex.runtime.loader.TinkerResourcePatcher;
+import fastdex.runtime.loader.shareutil.SharePatchFileUtil;
 
 /**
  * Created by tong on 17/4/29.
@@ -21,6 +25,7 @@ public class Fastdex {
     private static Fastdex instance;
 
     final RuntimeMetaInfo runtimeMetaInfo;
+    final File fastdexDirectory;
     final File patchDirectory;
     final File tempDirectory;
 //    final File dexDirectory;
@@ -43,10 +48,11 @@ public class Fastdex {
     public Fastdex(Context applicationContext) {
         this.applicationContext = applicationContext;
 
-        patchDirectory = new File(applicationContext.getFilesDir(), Constants.PATCH_DIR);
-        tempDirectory = new File(patchDirectory,Constants.TEMP_DIR);
-//        dexDirectory = new File(patchDirectory,Constants.DEX_DIR);
-//        resourceDirectory = new File(patchDirectory,Constants.RES_DIR);
+        fastdexDirectory = SharePatchFileUtil.getFastdexDirectory(applicationContext);
+        patchDirectory = SharePatchFileUtil.getPatchDirectory(applicationContext);
+        tempDirectory = SharePatchFileUtil.getPatchTempDirectory(applicationContext);
+//        dexDirectory = new File(fastdexDirectory,Constants.DEX_DIR);
+//        resourceDirectory = new File(fastdexDirectory,Constants.RES_DIR);
 
         RuntimeMetaInfo metaInfo = RuntimeMetaInfo.load(this);
         RuntimeMetaInfo assetsMetaInfo = null;
@@ -61,18 +67,18 @@ public class Fastdex {
             if (metaInfo == null) {
                 assetsMetaInfo.save(this);
                 metaInfo = assetsMetaInfo;
-                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
+                File metaInfoFile = new File(fastdexDirectory, ShareConstants.META_INFO_FILENAME);
                 if (!FileUtils.isLegalFile(metaInfoFile)) {
                     throw new FastdexRuntimeException("save meta-info fail: " + metaInfoFile.getAbsolutePath());
                 }
             }
             else if (!metaInfo.equals(assetsMetaInfo)) {
-                File metaInfoFile = new File(patchDirectory, ShareConstants.META_INFO_FILENAME);
+                File metaInfoFile = new File(fastdexDirectory, ShareConstants.META_INFO_FILENAME);
                 String metaInfoJson = new String(FileUtils.readContents(metaInfoFile));
                 Log.d(Fastdex.LOG_TAG,"load meta-info from files: \n" + metaInfoJson);
                 Log.d(Fastdex.LOG_TAG,"meta-info content changed clean");
 
-                FileUtils.cleanDir(patchDirectory);
+                FileUtils.cleanDir(fastdexDirectory);
                 FileUtils.cleanDir(tempDirectory);
                 assetsMetaInfo.save(this);
                 metaInfo = assetsMetaInfo;
@@ -90,7 +96,7 @@ public class Fastdex {
         return applicationContext;
     }
 
-    public void onAttachBaseContext() {
+    public void onAttachBaseContext(FastdexApplication fastdexApplication) {
         if (!fastdexEnabled) {
             return;
         }
@@ -99,14 +105,14 @@ public class Fastdex {
                 FileUtils.deleteDir(new File(runtimeMetaInfo.getLastPatchPath()));
             }
             File preparedPatchDir = new File(runtimeMetaInfo.getPreparedPatchPath());
-            File patchDir = new File(patchDirectory,preparedPatchDir.getName());
-            try {
-                FileUtils.copyDir(preparedPatchDir,patchDir);
-            } catch (IOException e) {
-                throw new FastdexRuntimeException(e);
-            }
+            File patchDir = patchDirectory;
+
+            FileUtils.deleteDir(patchDir);
+            preparedPatchDir.renameTo(patchDir);
+
             runtimeMetaInfo.setLastPatchPath(runtimeMetaInfo.getPatchPath());
             runtimeMetaInfo.setPreparedPatchPath(null);
+            runtimeMetaInfo.setPatchPath(patchDir.getAbsolutePath());
             runtimeMetaInfo.save(this);
         }
 
@@ -115,17 +121,47 @@ public class Fastdex {
         }
 
         final File dexDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.DEX_DIR);
+        final File odexDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.ODEX_DIR);
         final File resourceDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.RES_DIR);
 
         File resourceApkFile = new File(resourceDirectory,Constants.RESOURCE_APK_FILE_NAME);
         if (FileUtils.isLegalFile(resourceApkFile)) {
-            Log.d(LOG_TAG,"");
-            TinkerResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile);
+            Log.d(LOG_TAG,"apply res patch: " + resourceApkFile);
+            try {
+                TinkerResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile.getAbsolutePath());
+            } catch (Throwable throwable) {
+                throw new FastdexRuntimeException(throwable);
+            }
+        }
+
+        File mergedPatchDex = new File(dexDirectory,ShareConstants.MERGED_PATCH_DEX);
+        File patchDex = new File(dexDirectory,ShareConstants.PATCH_DEX);
+
+        ArrayList<File> dexList = new ArrayList<>();
+        if (FileUtils.isLegalFile(mergedPatchDex)) {
+            dexList.add(mergedPatchDex);
+        }
+        if (FileUtils.isLegalFile(patchDex)) {
+            dexList.add(patchDex);
+        }
+
+        if (!dexList.isEmpty()) {
+            PathClassLoader classLoader = (PathClassLoader) Fastdex.class.getClassLoader();
+            try {
+                Log.d(LOG_TAG,"apply dex patch: " + dexList);
+                SystemClassLoaderAdder.installDexes(fastdexApplication,classLoader,odexDirectory,dexList);
+            } catch (Throwable throwable) {
+                throw new FastdexRuntimeException(throwable);
+            }
         }
     }
 
-    public File getPatchDirectory() {
-        return patchDirectory;
+    private void copyPatchDir(File preparedPatchDir, File patchDir) {
+
+    }
+
+    public File getFastdexDirectory() {
+        return fastdexDirectory;
     }
 
     public File getTempDirectory() {

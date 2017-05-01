@@ -64,7 +64,7 @@ public class MainActivity extends Activity {
         sb.append("\n");
         sb.append(getResources().getString(common3str));
         sb.append("\n");
-        sb.append("haha");
+        sb.append("haha1");
 
         Log.d(TAG,"sb: \n" + sb.toString());
         Toast.makeText(this, sb.toString(),Toast.LENGTH_LONG).show();
@@ -76,7 +76,7 @@ public class MainActivity extends Activity {
             }
         };
 
-        SampleApplication realApp = (SampleApplication)getApplication();
+        //SampleApplication realApp = (SampleApplication)getApplication();
 
         new Runnable(){
             @Override

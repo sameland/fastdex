@@ -63,7 +63,7 @@ public class FastdexApplication extends Application {
         super.attachBaseContext(context);
         MultiDex.install(context);
         fixGoogleMultiDex(context);
-        Fastdex.get(context).onAttachBaseContext();
+        Fastdex.get(context).onAttachBaseContext(this);
         createRealApplication(context);
 
         if (this.realApplication != null) {

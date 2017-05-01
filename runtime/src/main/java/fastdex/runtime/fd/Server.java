@@ -35,6 +35,8 @@ import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.Handler;
 import android.util.Log;
+
+import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 import fastdex.runtime.fastdex.Fastdex;
@@ -158,8 +160,7 @@ public class Server {
                         Log.v(Logging.LOG_TAG, "Received connection from IDE: spawning connection thread");
                     }
 
-                    SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread(
-                            socket);
+                    SocketServerReplyThread socketServerReplyThread = new SocketServerReplyThread(socket);
                     socketServerReplyThread.run();
 
                     if (wrongTokenCount > 50) {
@@ -253,8 +254,7 @@ public class Server {
                         String variantName = fastdex.getRuntimeMetaInfo().getVariantName();
                         output.writeUTF(variantName);
                         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                            Log.v(Logging.LOG_TAG, "Received Ping message from the IDE; " +
-                                    "returned active = " + active);
+                            Log.v(Logging.LOG_TAG, "Received Ping message from the IDE; " + "returned active = " + active);
                         }
                         continue;
                     }
@@ -534,8 +534,7 @@ public class Server {
             if (toast) {
                 Activity foreground = Restarter.getForegroundActivity(context);
                 if (foreground != null) {
-                    Restarter.showToast(foreground, "Applied code changes without activity " +
-                            "restart");
+                    Restarter.showToast(foreground, "Applied code changes without activity restart");
                 } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
                     Log.v(Logging.LOG_TAG, "Couldn't show toast: no activity found");
                 }
@@ -543,12 +542,14 @@ public class Server {
             return;
         }
 
+       // android.os.Process.killProcess(android.os.Process.myPid());
         List<Activity> activities = Restarter.getActivities(context, false);
 
         if (incrementalResources && updateMode == UPDATE_MODE_WARM_SWAP) {
             // Try to just replace the resources on the fly!
-            File file = FileManager.getExternalResourceFile();
 
+            File resDir = new File(Fastdex.get(context).getRuntimeMetaInfo().getPreparedPatchPath(),Constants.RES_DIR);
+            File file = new File(resDir, ShareConstants.RESOURCE_APK_FILE_NAME);
             if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
                 Log.v(Logging.LOG_TAG, "About to update resource file=" + file +
                         ", activities=" + activities);

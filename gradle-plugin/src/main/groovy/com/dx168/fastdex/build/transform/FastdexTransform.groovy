@@ -80,7 +80,7 @@ class FastdexTransform extends TransformProxy {
 
                 if (fastdexVariant.willExecDexMerge()) {
                     //merge dex
-                    if (FastdexUtils.hasDex(mergedPatchDexDir)) {
+                    if (FileUtils.hasDex(mergedPatchDexDir)) {
                         //已经执行过一次dex merge
                         File cacheDexDir = FastdexUtils.getDexCacheDir(project,variantName)
                         //File outputDex = new File(dexOutputDir,"merged-patch.dex")

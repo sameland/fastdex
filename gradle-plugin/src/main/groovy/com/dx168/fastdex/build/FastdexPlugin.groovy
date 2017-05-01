@@ -103,7 +103,9 @@ class FastdexPlugin implements Plugin<Project> {
                         manifestTask.mustRunAfter tinkerPatchManifestTask
                     }
 
+                    //TODO change api
                     variantOutput.processManifest.dependsOn getMergeDebugResources(project,variantName)
+                    //variantOutput.processManifest.dependsOn variant.getVariantData().getScope().getMergeResourcesTask()
                     //替换项目的Application为com.dx168.fastdex.runtime.FastdexApplication
                     FastdexManifestTask manifestTask = project.tasks.create("fastdexProcess${variantName}Manifest", FastdexManifestTask)
                     manifestTask.fastdexVariant = fastdexVariant
@@ -153,6 +155,7 @@ class FastdexPlugin implements Plugin<Project> {
 
                     FastdexInstantRunTask fastdexInstantRunTask = project.tasks.create("fastdex${variantName}",FastdexInstantRunTask)
                     fastdexInstantRunTask.fastdexVariant = fastdexVariant
+                    fastdexInstantRunTask.resourceApFile = variantOutput.getVariantOutputData().getScope().getProcessResourcePackageOutputFile()
                     fastdexInstantRunTask.resDir = variantOutput.processResources.resDir
                     fastdexInstantRunTask.dependsOn variant.assemble
 

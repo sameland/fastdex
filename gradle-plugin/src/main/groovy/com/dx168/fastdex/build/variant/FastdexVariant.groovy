@@ -155,7 +155,6 @@ public class FastdexVariant {
         if (nornalBuild) {
             saveMetaInfo()
             copyRTxt()
-            copyMetaInfo2Assets()
         }
         else {
             if (dexMerge) {
@@ -168,6 +167,7 @@ public class FastdexVariant {
                 copyRTxt()
             }
         }
+        copyMetaInfo2Assets()
         projectSnapshoot.onDexGenerateSuccess(nornalBuild,dexMerge)
     }
 
@@ -178,7 +178,7 @@ public class FastdexVariant {
 
     def copyMetaInfo2Assets() {
         File metaInfoFile = FastdexUtils.getMetaInfoFile(project,variantName)
-        File assetsPath = new File(project.buildDir,"intermediates${File.separator}assets${File.separator}${androidVariant.dirName}")
+        File assetsPath = androidVariant.getVariantData().getScope().getMergeAssetsOutputDir()
         FileUtils.copyFileUsingStream(metaInfoFile,new File(assetsPath,metaInfoFile.getName()))
     }
 

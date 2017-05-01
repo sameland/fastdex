@@ -110,7 +110,9 @@ public class ProjectSnapshoot {
             }
         }
 
-        File rDir = new File(fastdexVariant.project.buildDir,"generated${File.separator}source${File.separator}r${File.separator}${fastdexVariant.androidVariant.dirName}${File.separator}")
+        //TODO change api
+        //File rDir = new File(fastdexVariant.project.buildDir,"generated${File.separator}source${File.separator}r${File.separator}${fastdexVariant.androidVariant.dirName}${File.separator}")
+        File rDir = fastdexVariant.androidVariant.getVariantData().getScope().getRClassSourceOutputDir()
         //r
         JavaDirectorySnapshoot rSnapshoot = new JavaDirectorySnapshoot(rDir,getAllRjavaPath(fastdexVariant.project,androidLibDependencies))
         rSnapshoot.projectPath = fastdexVariant.project.projectDir.absolutePath
@@ -159,7 +161,9 @@ public class ProjectSnapshoot {
             String buildConfigJavaRelativePath = "${packageNamePath}${File.separator}BuildConfig.java"
             File buildConfigDir = null
             if (i == 0) {
-                buildConfigDir = new File(project.buildDir,"generated${File.separator}source${File.separator}buildConfig${File.separator}${fastdexVariant.androidVariant.dirName}${File.separator}")
+                //TODO change api
+                buildConfigDir = fastdexVariant.androidVariant.getVariantData().getScope().getBuildConfigSourceOutputDir()
+                //buildConfigDir = new File(project.buildDir,"generated${File.separator}source${File.separator}buildConfig${File.separator}${fastdexVariant.androidVariant.dirName}${File.separator}")
             }
             else {
                 buildConfigDir = new File(project.buildDir,"generated${File.separator}source${File.separator}buildConfig${File.separator}${libraryVariantdirName}${File.separator}")
