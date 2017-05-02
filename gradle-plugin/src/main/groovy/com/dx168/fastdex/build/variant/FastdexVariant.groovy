@@ -1,6 +1,7 @@
 package com.dx168.fastdex.build.variant
 
 import com.dx168.fastdex.build.extension.FastdexExtension
+import com.dx168.fastdex.build.task.FastdexInstantRunTask
 import fastdex.common.utils.SerializeUtils
 import com.dx168.fastdex.build.util.LibDependency
 import com.dx168.fastdex.build.util.MetaInfo
@@ -30,7 +31,9 @@ public class FastdexVariant {
     boolean firstPatchBuild
     boolean initialized
     boolean executedJarMerge
+    boolean fromInstantRun
     MetaInfo metaInfo
+    FastdexInstantRunTask fastdexInstantRunTask
 
     FastdexVariant(Project project, Object androidVariant) {
         this.project = project
@@ -168,6 +171,7 @@ public class FastdexVariant {
             }
         }
         copyMetaInfo2Assets()
+        fastdexInstantRunTask.onDexGenerateSuccess(nornalBuild,dexMerge)
         projectSnapshoot.onDexGenerateSuccess(nornalBuild,dexMerge)
     }
 

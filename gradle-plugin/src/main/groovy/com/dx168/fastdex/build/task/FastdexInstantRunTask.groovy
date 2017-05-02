@@ -7,6 +7,7 @@ import com.dx168.fastdex.build.util.FastdexUtils
 import com.dx168.fastdex.build.util.GradleUtils
 import com.dx168.fastdex.build.util.MetaInfo
 import com.dx168.fastdex.build.variant.FastdexVariant
+import fastdex.build.lib.aapt.FileUtil
 import fastdex.build.lib.fd.Communicator
 import fastdex.build.lib.fd.ServiceCommunicator
 import fastdex.common.ShareConstants
@@ -64,6 +65,10 @@ public class FastdexInstantRunTask extends DefaultTask {
         return device
     }
 
+    public void onDexGenerateSuccess(boolean nornalBuild,boolean dexMerge) {
+
+    }
+
     @TaskAction
     void instantRun() {
         IDevice device = preparedDevice()
@@ -92,7 +97,7 @@ public class FastdexInstantRunTask extends DefaultTask {
                 throw new IOException("variantName not equal")
             }
 
-            File resourcesApk = new File(fastdexVariant.buildDir,ShareConstants.RESOURCE_APK_FILE_NAME)
+            File resourcesApk = FastdexUtils.getResourcesApk(project,fastdexVariant.variantName)
             generateResourceApk(resourcesApk)
             File mergedPatchDex = FastdexUtils.getMergedPatchDex(fastdexVariant.project,fastdexVariant.variantName)
             File patchDex = FastdexUtils.getPatchDexFile(fastdexVariant.project,fastdexVariant.variantName)
@@ -223,27 +228,12 @@ public class FastdexInstantRunTask extends DefaultTask {
 
     def generateResourceApk(File resourcesApk) {
         long start = System.currentTimeMillis()
-        File tempDir = new File(fastdexVariant.buildDir,"temp")
+        File tempDir = new File(FastdexUtils.getResourceDir(project,fastdexVariant.variantName),"temp")
         FileUtils.cleanDir(tempDir)
-        //File resourceAp = new File(project.buildDir,"intermediates${File.separator}res${File.separator}resources-debug.ap_")
-        //java -cp {sdk.dir}/tools/lib/sdklib.jar com.android.sdklib.build.ApkBuilderMain resources.apk -z resources-debug.ap_
-        String sdklibPath = new File(FastdexUtils.getSdkDirectory(project),"tools${File.separator}lib${File.separator}sdklib.jar").absolutePath
+        File resourceAp = new File(project.buildDir,"intermediates${File.separator}res${File.separator}resources-debug.ap_")
 
-        def process = new ProcessBuilder(FastdexUtils.getJavaCmdPath(),"-cp",sdklibPath,"com.android.sdklib.build.ApkBuilderMain",resourcesApk.absolutePath,"-v","-u","-z",resourceApFile.absolutePath).start()
-        int status = process.waitFor()
-        try {
-            process.destroy()
-        } catch (Throwable e) {
-
-        }
-
-        String cmd = "java -cp ${sdklibPath} com.android.sdklib.build.ApkBuilderMain ${resourcesApk} -v -u -z ${resourceApFile}"
-        if (fastdexVariant.configuration.debug) {
-            project.logger.error("==fastdex create resources.apk cmd:\n${cmd}")
-        }
-        if (status != 0) {
-            throw new RuntimeException("==fastdex generate resources.apk fail: \n${cmd}")
-        }
+        File tempResourcesApk = new File(tempDir,resourcesApk.getName())
+        FileUtils.copyFileUsingStream(resourceAp,tempResourcesApk)
 
         File assetsPath = fastdexVariant.androidVariant.getVariantData().getScope().getMergeAssetsOutputDir()
         List<String> assetFiles = getAssetFiles(assetsPath)
@@ -257,22 +247,23 @@ public class FastdexInstantRunTask extends DefaultTask {
         cmds[0] = FastdexUtils.getAaptCmdPath(project)
         cmds[1] = "add"
         cmds[2] = "-f"
-        cmds[3] = resourcesApk.absolutePath
+        cmds[3] = tempResourcesApk.absolutePath
         for (int i = 0; i < assetFiles.size(); i++) {
             cmds[4 + i] = "assets/${assetFiles.get(i)}";
         }
 
         ProcessBuilder aaptProcess = new ProcessBuilder(cmds)
         aaptProcess.directory(tempDir)
-        process = aaptProcess.start()
-        status = process.waitFor()
+        def process = aaptProcess.start()
+        int status = process.waitFor()
         try {
             process.destroy()
         } catch (Throwable e) {
 
         }
 
-        cmd = cmds.join(" ")
+        tempResourcesApk.renameTo(resourcesApk)
+        def cmd = cmds.join(" ")
         if (fastdexVariant.configuration.debug) {
             project.logger.error("==fastdex add asset files into resources.apk. cmd:\n${cmd}")
         }

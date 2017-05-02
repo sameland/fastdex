@@ -158,6 +158,11 @@ class FastdexPlugin implements Plugin<Project> {
                     fastdexInstantRunTask.resourceApFile = variantOutput.getVariantOutputData().getScope().getProcessResourcePackageOutputFile()
                     fastdexInstantRunTask.resDir = variantOutput.processResources.resDir
                     fastdexInstantRunTask.dependsOn variant.assemble
+                    fastdexInstantRunTask.doFirst {
+                        fastdexVariant.fromInstantRun = true
+                    }
+
+                    fastdexVariant.fastdexInstantRunTask = fastdexInstantRunTask
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override

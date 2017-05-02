@@ -1,5 +1,6 @@
 package com.dx168.fastdex.build.util
 
+import fastdex.common.ShareConstants
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.api.Project
 import fastdex.common.utils.FileUtils
@@ -240,6 +241,16 @@ public class FastdexUtils {
     public static File getResourceMappingFile(Project project, String variantName) {
         File resourceMappingFile = new File(getBuildResourceDir(project,variantName),Constants.R_TXT)
         return resourceMappingFile
+    }
+
+    public static File getResourceDir(Project project, String variantName) {
+        File resDir = new File(getBuildDir(project,variantName),"res")
+        return resDir
+    }
+
+    public static File getResourcesApk(Project project, String variantName) {
+        File resourcesApk = new File(getResourceDir(project,variantName),ShareConstants.RESOURCE_APK_FILE_NAME)
+        return resourcesApk
     }
 
     /**
