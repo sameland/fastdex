@@ -70,16 +70,17 @@ public class FastdexInstantRunTask extends DefaultTask {
         String packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
         ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
         try {
-            Boolean active = false
+            boolean active = false
+            int appPid = -1
             MetaInfo runtimeMetaInfo = serviceCommunicator.talkToService(device, new Communicator<MetaInfo>() {
                 @Override
                 public MetaInfo communicate(DataInputStream input, DataOutputStream output) throws IOException {
                     output.writeInt(ProtocolConstants.MESSAGE_PING)
-
                     MetaInfo runtimeMetaInfo = new MetaInfo()
                     active = input.readBoolean()
                     runtimeMetaInfo.buildMillis = input.readLong()
                     runtimeMetaInfo.variantName = input.readUTF()
+                    appPid = input.readInt()
                     return runtimeMetaInfo
                 }
             })
@@ -140,11 +141,9 @@ public class FastdexInstantRunTask extends DefaultTask {
             if (result) {
                 project.logger.error("==fastdex send patch data success.....")
 
-                if (!active) {
-                    //kill app
-
-                    startBootActivity(packageName)
-                }
+                //kill app
+                killApp(appPid)
+                startBootActivity(packageName)
             }
             else {
                 project.logger.error("==fastdex send patch data fail.....")
@@ -171,10 +170,32 @@ public class FastdexInstantRunTask extends DefaultTask {
         project.logger.error("==fastdex normal run ${targetVariantName}")
         //安装app
         File apkFile = targetVariant.outputs.first().getOutputFile()
-        project.logger.error("==fastdex install apk cmd:\nadb install -r ${apkFile}")
+        project.logger.error("adb install -r ${apkFile}")
         device.installPackage(apkFile.absolutePath,true)
 
         startBootActivity(packageName)
+    }
+
+    def killApp(appPid) {
+        if (appPid == -1) {
+            return
+        }
+        //$ adb shell kill {appPid}
+        def process = new ProcessBuilder(FastdexUtils.getAdbCmdPath(project),"shell","kill","${appPid}").start()
+        int status = process.waitFor()
+        try {
+            process.destroy()
+        } catch (Throwable e) {
+
+        }
+
+        String cmd = "adb shell kill ${appPid}"
+        if (fastdexVariant.configuration.debug) {
+            project.logger.error("${cmd}")
+        }
+        if (status != 0) {
+            throw new RuntimeException("==fastdex kill app fail: \n${cmd}")
+        }
     }
 
     def startBootActivity(String packageName) {
@@ -192,7 +213,7 @@ public class FastdexInstantRunTask extends DefaultTask {
 
             String cmd = "adb shell am start -n \"${packageName}/${bootActivityName}\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
             if (fastdexVariant.configuration.debug) {
-                project.logger.error("==fastdex start activity cmd:\n${cmd}")
+                project.logger.error("${cmd}")
             }
             if (status != 0) {
                 throw new RuntimeException("==fastdex start activity fail: \n${cmd}")

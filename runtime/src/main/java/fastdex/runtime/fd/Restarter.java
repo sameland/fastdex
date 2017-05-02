@@ -170,7 +170,6 @@ public class Restarter {
         });
     }
 
-
     public static Activity getForegroundActivity(Context context) {
         List<Activity> list = getActivities(context, true);
         return list.isEmpty() ? null : list.get(0);

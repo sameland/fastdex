@@ -12,8 +12,9 @@ import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
 import fastdex.runtime.FastdexApplication;
 import fastdex.runtime.FastdexRuntimeException;
+import fastdex.runtime.fd.Server;
 import fastdex.runtime.loader.SystemClassLoaderAdder;
-import fastdex.runtime.loader.TinkerResourcePatcher;
+import fastdex.runtime.loader.ResourcePatcher;
 import fastdex.runtime.loader.shareutil.SharePatchFileUtil;
 
 /**
@@ -128,7 +129,7 @@ public class Fastdex {
         if (FileUtils.isLegalFile(resourceApkFile)) {
             Log.d(LOG_TAG,"apply res patch: " + resourceApkFile);
             try {
-                TinkerResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile.getAbsolutePath());
+                ResourcePatcher.monkeyPatchExistingResources(applicationContext,resourceApkFile.getAbsolutePath());
             } catch (Throwable throwable) {
                 throw new FastdexRuntimeException(throwable);
             }
@@ -154,10 +155,8 @@ public class Fastdex {
                 throw new FastdexRuntimeException(throwable);
             }
         }
-    }
 
-    private void copyPatchDir(File preparedPatchDir, File patchDir) {
-
+        Server.showToast("fastdex, apply patch successful",applicationContext);
     }
 
     public File getFastdexDirectory() {

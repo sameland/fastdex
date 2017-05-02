@@ -240,6 +240,7 @@ public class Server {
                         output.writeLong(buildMillis);
                         String variantName = fastdex.getRuntimeMetaInfo().getVariantName();
                         output.writeUTF(variantName);
+                        output.writeInt(android.os.Process.myPid());
                         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
                             Log.v(Logging.LOG_TAG, "Received Ping message from the IDE; " + "returned active = " + active);
                         }
@@ -251,6 +252,11 @@ public class Server {
                             return;
                         }
 
+                        try {
+                            showToast("fastdex, receiving patch info...",context);
+                        } catch (Throwable e) {
+
+                        }
                         List<ApplicationPatch> changes = ApplicationPatch.read(input);
                         if (changes == null) {
                             continue;
@@ -297,12 +303,7 @@ public class Server {
 
                     case MESSAGE_SHOW_TOAST: {
                         String text = input.readUTF();
-                        Activity foreground = Restarter.getForegroundActivity(context);
-                        if (foreground != null) {
-                            Restarter.showToast(foreground, text);
-                        } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                            Log.v(Logging.LOG_TAG, "Couldn't show toast (no activity) : " + text);
-                        }
+                        showToast(text,context);
                         continue;
                     }
 
@@ -328,6 +329,15 @@ public class Server {
                 return false;
             }
             return true;
+        }
+    }
+
+    public static void showToast(String text,Context context) {
+        Activity foreground = Restarter.getForegroundActivity(context);
+        if (foreground != null) {
+            Restarter.showToast(foreground, text);
+        } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+            Log.v(Logging.LOG_TAG, "Couldn't show toast (no activity) : " + text);
         }
     }
 
@@ -408,14 +418,6 @@ public class Server {
     }
 
     private static int handleResourcePatch(int updateMode, ApplicationPatch patch, String path, File workDir) throws IOException {
-//        if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-//            Log.v(Logging.LOG_TAG, "Received resource changes (" + path + ")");
-//        }
-//        FileManager.writeAaptResources(path, patch.getBytes());
-//        //noinspection ResourceType
-//        updateMode = Math.max(updateMode, UPDATE_MODE_WARM_SWAP);
-//        return updateMode;
-
         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
             Log.v(Logging.LOG_TAG, "Received resource changes (" + path + ")");
         }
@@ -427,56 +429,6 @@ public class Server {
     }
 
     private int handleHotSwapPatch(int updateMode, ApplicationPatch patch, File workDir) {
-//        if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-//            Log.v(Logging.LOG_TAG, "Received incremental code patch");
-//        }
-//        try {
-//            String dexFile = FileManager.writeTempDexFile(patch.getBytes());
-//            if (dexFile == null) {
-//                Log.e(Logging.LOG_TAG, "No file to write the code to");
-//                return updateMode;
-//            } else if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-//                Log.v(Logging.LOG_TAG, "Reading live code from " + dexFile);
-//            }
-//            String nativeLibraryPath = FileManager.getNativeLibraryFolder().getPath();
-//            DexClassLoader dexClassLoader = new DexClassLoader(dexFile,
-//                    context.getCacheDir().getPath(), nativeLibraryPath,
-//                    getClass().getClassLoader());
-//
-//            // we should transform this process with an interface/impl
-//            Class<?> aClass = Class.forName(
-//                    "com.android.tools.fd.runtime.AppPatchesLoaderImpl", true, dexClassLoader);
-//            try {
-//                if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-//                    Log.v(Logging.LOG_TAG, "Got the patcher class " + aClass);
-//                }
-//
-////                PatchesLoader loader = (PatchesLoader) aClass.newInstance();
-////                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
-////                    Log.v(LOG_TAG, "Got the patcher instance " + loader);
-////                }
-////                String[] getPatchedClasses = (String[]) aClass
-////                        .getDeclaredMethod("getPatchedClasses").invoke(loader);
-////                if (Log.isLoggable(LOG_TAG, Log.VERBOSE)) {
-////                    Log.v(LOG_TAG, "Got the list of classes ");
-////                    for (String getPatchedClass : getPatchedClasses) {
-////                        Log.v(LOG_TAG, "class " + getPatchedClass);
-////                    }
-////                }
-////                if (!loader.load()) {
-////                    updateMode = UPDATE_MODE_COLD_SWAP;
-////                }
-//            } catch (Exception e) {
-//                Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
-//                e.printStackTrace();
-//                updateMode = UPDATE_MODE_COLD_SWAP;
-//            }
-//        } catch (Throwable e) {
-//            Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
-//            updateMode = UPDATE_MODE_COLD_SWAP;
-//        }
-//        return updateMode;
-
         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
             Log.v(Logging.LOG_TAG, "Received incremental code patch");
         }
