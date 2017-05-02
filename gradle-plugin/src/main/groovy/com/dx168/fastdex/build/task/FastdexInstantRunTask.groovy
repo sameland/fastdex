@@ -67,17 +67,17 @@ public class FastdexInstantRunTask extends DefaultTask {
     @TaskAction
     void instantRun() {
         IDevice device = preparedDevice()
-
         String packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
         ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
         try {
+            Boolean active = false
             MetaInfo runtimeMetaInfo = serviceCommunicator.talkToService(device, new Communicator<MetaInfo>() {
                 @Override
                 public MetaInfo communicate(DataInputStream input, DataOutputStream output) throws IOException {
                     output.writeInt(ProtocolConstants.MESSAGE_PING)
 
                     MetaInfo runtimeMetaInfo = new MetaInfo()
-                    boolean active = input.readBoolean()
+                    active = input.readBoolean()
                     runtimeMetaInfo.buildMillis = input.readLong()
                     runtimeMetaInfo.variantName = input.readUTF()
                     return runtimeMetaInfo
@@ -139,45 +139,68 @@ public class FastdexInstantRunTask extends DefaultTask {
             })
             if (result) {
                 project.logger.error("==fastdex send patch data success.....")
+
+                if (!active) {
+                    startBootActivity(packageName)
+                }
+            }
+            else {
+                project.logger.error("==fastdex send patch data fail.....")
+                normalRun(device,packageName,fastdexVariant.metaInfo.variantName)
             }
         } catch (IOException e) {
-            e.printStackTrace()
-
-//            if (!"debug".equalsIgnoreCase(variant.buildType.name as String)) {
-//                println "variant ${variant.name} is not debug, skip hack process."
-//                return
-//            } else if (!FreelineUtils.isEmpty(productFlavor) && !productFlavor.toString().equalsIgnoreCase(variant.flavorName)) {
-//                println "variant ${variant.name} is not ${productFlavor}, skip hack process."
-//                return
-//            }
-//
-//            println "find variant ${variant.name} start hack process..."
-
+            if (fastdexVariant.configuration.debug) {
+                e.printStackTrace()
+            }
             //TODO 选择一个variant
-            normalRun("Debug")
+            normalRun(device,packageName,"Debug")
         }
     }
 
-    void normalRun(String targetVariantName) {
+    void normalRun(IDevice device,String packageName,String targetVariantName) {
         def targetVariant = null
         project.android.applicationVariants.all { variant ->
             def variantName = variant.name.capitalize()
-
             if (variantName.equals(targetVariantName)) {
                 targetVariant = variant
             }
         }
 
-        project.logger.error("==fastdex normalRun ${targetVariantName}")
-        //卸载已存在app
+        project.logger.error("==fastdex normal run ${targetVariantName}")
         //安装app
+        File apkFile = targetVariant.outputs.first().getOutputFile()
+        project.logger.error("==fastdex install apk cmd:\nadb install -r ${apkFile}")
+        device.installPackage(apkFile.absolutePath,true)
+
+        startBootActivity(packageName)
+    }
+
+    def startBootActivity(String packageName) {
         //启动第一个activity
+        String bootActivityName = GradleUtils.getBootActivity(fastdexVariant.manifestPath)
+        if (bootActivityName) {
+            //$ adb shell am start -n "com.dx168.fastdex.sample/com.dx168.fastdex.sample.MainActivity" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER
+            def process = new ProcessBuilder(FastdexUtils.getAdbCmdPath(project),"shell","am","start","-n","\"${packageName}/${bootActivityName}\"","-a","android.intent.action.MAIN","-c","android.intent.category.LAUNCHER").start()
+            int status = process.waitFor()
+            try {
+                process.destroy()
+            } catch (Throwable e) {
+
+            }
+
+            String cmd = "adb shell am start -n \"${packageName}/${bootActivityName}\" -a android.intent.action.MAIN -c android.intent.category.LAUNCHER"
+            if (fastdexVariant.configuration.debug) {
+                project.logger.error("==fastdex start activity cmd:\n${cmd}")
+            }
+            if (status != 0) {
+                throw new RuntimeException("==fastdex start activity fail: \n${cmd}")
+            }
+        }
     }
 
     def generateResourceApk(File resourcesApk) {
         long start = System.currentTimeMillis()
         File tempDir = new File(fastdexVariant.buildDir,"temp")
-        File tempResourcesApk = new File(tempDir,resourcesApk.getName())
         FileUtils.cleanDir(tempDir)
         //File resourceAp = new File(project.buildDir,"intermediates${File.separator}res${File.separator}resources-debug.ap_")
         //java -cp {sdk.dir}/tools/lib/sdklib.jar com.android.sdklib.build.ApkBuilderMain resources.apk -z resources-debug.ap_

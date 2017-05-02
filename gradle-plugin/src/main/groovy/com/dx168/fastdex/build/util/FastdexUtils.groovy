@@ -48,6 +48,19 @@ public class FastdexUtils {
     }
 
     /**
+     * 获取adb命令路径
+     * @param project
+     * @return
+     */
+    public static final String getAdbCmdPath(Project project) {
+        File adb = new File(FastdexUtils.getSdkDirectory(project),"platform-tools${File.separator}adb")
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            return "${adb.absolutePath}.exe"
+        }
+        return adb.getAbsolutePath()
+    }
+
+    /**
      * 获取当前jdk路径
      * @return
      */

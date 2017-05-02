@@ -35,7 +35,6 @@ public class MetaInfo {
     public int patchDexVersion
 
 
-
     /**
      * 是否移动了工程目录
      * @param project

@@ -142,9 +142,9 @@ dependencies {
 project.afterEvaluate {
     android.applicationVariants.all { variant ->
         def variantName = variant.name.capitalize()
+        def variantOutput = variant.outputs.first()
 
         if ("Debug".equals(variantName)) {
-
         }
     }
 }

@@ -6,6 +6,7 @@ import com.android.builder.model.Version
 import com.google.common.collect.Lists
 import com.android.build.gradle.internal.transforms.JarMerger
 import fastdex.common.utils.FileUtils
+import groovy.xml.QName
 import org.gradle.api.GradleException
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
@@ -132,6 +133,67 @@ public class GradleUtils {
         String packageName = xml.attribute('package')
 
         return packageName
+    }
+
+    /**
+     * 获取启动的activity
+     * @param manifestPath
+     * @return
+     */
+    public static String getBootActivity(String manifestPath) {
+        def bootActivityName = ""
+        def xml = new XmlParser().parse(new InputStreamReader(new FileInputStream(manifestPath), "utf-8"))
+        def application = xml.application[0]
+
+        if (application) {
+            def activities = application.activity
+            QName androidNameAttr = new QName("http://schemas.android.com/apk/res/android", 'name', 'android');
+
+            try {
+                activities.each { activity->
+                    def activityName = activity.attribute(androidNameAttr)
+
+                    if (activityName) {
+                        def intentFilters = activity."intent-filter"
+                        if (intentFilters) {
+                            intentFilters.each { intentFilter->
+                                def actions = intentFilter.action
+                                def categories = intentFilter.category
+                                if (actions && categories) {
+                                    //android.intent.action.MAIN
+                                    //android.intent.category.LAUNCHER
+
+                                    boolean hasMainAttr = false
+                                    boolean hasLauncherAttr = false
+
+                                    actions.each { action ->
+                                        def attr = action.attribute(androidNameAttr)
+                                        if ("android.intent.action.MAIN".equals(attr.toString())) {
+                                            hasMainAttr = true
+                                        }
+                                    }
+
+                                    categories.each { categoriy ->
+                                        def attr = categoriy.attribute(androidNameAttr)
+                                        if ("android.intent.category.LAUNCHER".equals(attr.toString())) {
+                                            hasLauncherAttr = true
+                                        }
+                                    }
+
+                                    if (hasMainAttr && hasLauncherAttr) {
+                                        bootActivityName = activityName
+                                        throw new JumpException()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (JumpException e) {
+
+            }
+        }
+        return bootActivityName
     }
 
     /**
