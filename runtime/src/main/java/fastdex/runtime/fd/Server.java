@@ -35,7 +35,6 @@ import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.os.Handler;
 import android.util.Log;
-
 import fastdex.common.ShareConstants;
 import fastdex.common.utils.FileUtils;
 import fastdex.runtime.Constants;
@@ -45,7 +44,6 @@ import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -56,17 +54,6 @@ import java.util.UUID;
  * when provided
  */
 public class Server {
-
-    /**
-     * If true, app restarts itself after receiving coldswap patches. If false,
-     * it will just wait for the client to kill it remotely and restart via activity manager.
-     * If we restart locally, there could be problems around: a) getting all the right intent
-     * data to the restarted activity, and b) sometimes, the activity state is saved by the
-     * system, and it could lead to conflicts with the new version of the app.
-     * So this is currently turned off. See
-     * https://code.google.com/p/android/issues/detail?id=200895#c9
-     */
-    private static final boolean RESTART_LOCALLY = false;
 
     /**
      * Temporary debugging: have the server emit a message to the log every 30 seconds to
@@ -269,6 +256,7 @@ public class Server {
                             continue;
                         }
 
+                        boolean hasDex = hasDex(changes);
                         boolean hasResources = hasResources(changes);
                         int updateMode = input.readInt();
                         updateMode = handlePatches(changes, hasResources, updateMode);
@@ -278,53 +266,17 @@ public class Server {
                         // Send an "ack" back to the IDE; this is used for timing purposes only
                         output.writeBoolean(true);
 
-                        restart(updateMode, hasResources, showToast);
+                        restart(updateMode,hasDex, hasResources, showToast);
                         continue;
                     }
 
                     case MESSAGE_PATH_EXISTS: {
-                        if (FileManager.USE_EXTRACTED_RESOURCES) {
-                            String path = input.readUTF();
-                            long size = FileManager.getFileSize(path);
-                            output.writeLong(size);
-                            if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                                Log.v(Logging.LOG_TAG, "Received path-exists(" + path + ") from the " +
-                                        "IDE; returned size=" + size);
-                            }
-                        } else {
-                            if (Log.isLoggable(Logging.LOG_TAG, Log.ERROR)) {
-                                Log.e(Logging.LOG_TAG, "Unexpected message type: " + message);
-                            }
-                        }
+
                         continue;
                     }
 
                     case MESSAGE_PATH_CHECKSUM: {
-                        if (FileManager.USE_EXTRACTED_RESOURCES) {
-                            long begin = System.currentTimeMillis();
-                            String path = input.readUTF();
-                            byte[] checksum = FileManager.getCheckSum(path);
-                            if (checksum != null) {
-                                output.writeInt(checksum.length);
-                                output.write(checksum);
-                                if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                                    long end = System.currentTimeMillis();
-                                    String hash = new BigInteger(1, checksum).toString(16);
-                                    Log.v(Logging.LOG_TAG, "Received checksum(" + path + ") from the " +
-                                            "IDE: took " + (end - begin) + "ms to compute " + hash);
-                                }
-                            } else {
-                                output.writeInt(0);
-                                if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                                    Log.v(Logging.LOG_TAG, "Received checksum(" + path + ") from the " +
-                                            "IDE: returning <null>");
-                                }
-                            }
-                        } else {
-                            if (Log.isLoggable(Logging.LOG_TAG, Log.ERROR)) {
-                                Log.e(Logging.LOG_TAG, "Unexpected message type: " + message);
-                            }
-                        }
+
                         continue;
                     }
 
@@ -389,6 +341,23 @@ public class Server {
         for (ApplicationPatch change : changes) {
             String path = change.getPath();
             if (isResourcePath(path)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    private static boolean isDexPath(String path) {
+        return path.endsWith(Constants.DEX_SUFFIX);
+    }
+
+    private static boolean hasDex(List<ApplicationPatch> changes) {
+        // Any non-code patch is a resource patch (normally resources.ap_ but could
+        // also be individual resource files such as res/layout/activity_main.xml)
+        for (ApplicationPatch change : changes) {
+            String path = change.getPath();
+            if (isDexPath(path)) {
                 return true;
             }
 
@@ -518,10 +487,10 @@ public class Server {
             Log.e(Logging.LOG_TAG, "Couldn't apply code changes", e);
             updateMode = UPDATE_MODE_COLD_SWAP;
         }
-        return updateMode;
+        return UPDATE_MODE_COLD_SWAP;
     }
 
-    private void restart(int updateMode, boolean incrementalResources, boolean toast) {
+    private void restart(int updateMode, boolean hasDex, boolean incrementalResources, boolean toast) {
         if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
             Log.v(Logging.LOG_TAG, "Finished loading changes; update mode =" + updateMode);
         }
@@ -545,7 +514,7 @@ public class Server {
        // android.os.Process.killProcess(android.os.Process.myPid());
         List<Activity> activities = Restarter.getActivities(context, false);
 
-        if (incrementalResources && updateMode == UPDATE_MODE_WARM_SWAP) {
+        if (!hasDex && incrementalResources && updateMode == UPDATE_MODE_WARM_SWAP) {
             // Try to just replace the resources on the fly!
 
             File resDir = new File(Fastdex.get(context).getRuntimeMetaInfo().getPreparedPatchPath(),Constants.RES_DIR);
@@ -613,16 +582,8 @@ public class Server {
             return;
         }
 
-        if (RESTART_LOCALLY) {
-            if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                Log.v(Logging.LOG_TAG, "Performing full app restart");
-            }
-
-            Restarter.restartApp(context, activities, toast);
-        } else {
-            if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
-                Log.v(Logging.LOG_TAG, "Waiting for app to be killed and restarted by the IDE...");
-            }
+        if (Log.isLoggable(Logging.LOG_TAG, Log.VERBOSE)) {
+            Log.v(Logging.LOG_TAG, "Waiting for app to be killed and restarted by the IDE...");
         }
     }
 }

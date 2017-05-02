@@ -141,6 +141,8 @@ public class FastdexInstantRunTask extends DefaultTask {
                 project.logger.error("==fastdex send patch data success.....")
 
                 if (!active) {
+                    //kill app
+
                     startBootActivity(packageName)
                 }
             }
