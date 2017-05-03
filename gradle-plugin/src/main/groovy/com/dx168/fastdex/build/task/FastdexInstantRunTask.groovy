@@ -66,7 +66,12 @@ public class FastdexInstantRunTask extends DefaultTask {
         project.logger.error("==fastdex device connected ${device.toString()}")
     }
 
-    public void onDexGenerateSuccess(boolean nornalBuild,boolean dexMerge) {
+    public void onDexTransformComplete() {
+        project.logger.error("==fastdex onDexTransformComplete")
+        if (!fastdexVariant.fromInstantRun) {
+            return
+        }
+        project.logger.error("==fastdex onDexTransformComplete2")
         preparedDevice()
         packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
         ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)

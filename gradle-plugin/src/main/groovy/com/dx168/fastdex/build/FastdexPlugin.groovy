@@ -159,10 +159,14 @@ class FastdexPlugin implements Plugin<Project> {
                     fastdexInstantRunTask.resDir = variantOutput.processResources.resDir
                     fastdexInstantRunTask.dependsOn variant.assemble
                     fastdexInstantRunTask.doFirst {
+                        project.logger.error("==fastdex fastdexInstantRunTask.doFirst")
                         fastdexVariant.fromInstantRun = true
                     }
-
                     fastdexVariant.fastdexInstantRunTask = fastdexInstantRunTask
+
+                    getTransformClassesWithDex(project,variantName).doLast {
+                        fastdexInstantRunTask.onDexTransformComplete()
+                    }
 
                     project.getGradle().getTaskGraph().addTaskExecutionGraphListener(new TaskExecutionGraphListener() {
                         @Override
@@ -227,6 +231,11 @@ class FastdexPlugin implements Plugin<Project> {
             //fix issue #1 如果没有开启multidex会报错
             return null
         }
+    }
+
+    Task getTransformClassesWithDex(Project project, String variantName) {
+        String taskName = "transformClassesWithDexFor${variantName}"
+        return project.tasks.getByName(taskName)
     }
 
     Task getCollectMultiDexComponentsTask(Project project, String variantName) {

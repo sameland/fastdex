@@ -31,6 +31,7 @@ public class FastdexVariant {
     boolean firstPatchBuild
     boolean initialized
     boolean executedJarMerge
+    boolean executedDexTransform
     boolean fromInstantRun
     MetaInfo metaInfo
     FastdexInstantRunTask fastdexInstantRunTask
@@ -171,7 +172,6 @@ public class FastdexVariant {
             }
         }
         copyMetaInfo2Assets()
-        fastdexInstantRunTask.onDexGenerateSuccess(nornalBuild,dexMerge)
         projectSnapshoot.onDexGenerateSuccess(nornalBuild,dexMerge)
     }
 
