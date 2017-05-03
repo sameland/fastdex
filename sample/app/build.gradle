@@ -150,12 +150,5 @@ project.afterEvaluate {
 }
 
 task mytest {
-
-    Task task = project.tasks.first()
-
-
-    println("==${task}")
-
-    println("==${project.gradle.startParameter.taskRequests.get(0).args}")
 }
 

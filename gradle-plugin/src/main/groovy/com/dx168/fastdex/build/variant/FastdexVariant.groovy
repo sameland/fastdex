@@ -27,12 +27,12 @@ public class FastdexVariant {
     final ProjectSnapshoot projectSnapshoot
     final TagManager tagManager
     final Set<LibDependency> libraryDependencies
+    String packageName
     boolean hasDexCache
     boolean firstPatchBuild
     boolean initialized
     boolean executedJarMerge
     boolean executedDexTransform
-    boolean fromInstantRun
     MetaInfo metaInfo
     FastdexInstantRunTask fastdexInstantRunTask
 
@@ -147,8 +147,12 @@ public class FastdexVariant {
      * @return
      */
     public String getApplicationPackageName() {
+        if (packageName != null) {
+            return packageName
+        }
         String path = project.android.sourceSets.main.manifest.srcFile.absolutePath
-        return GradleUtils.getPackageName(path)
+        packageName = GradleUtils.getPackageName(path)
+        return packageName
     }
 
     /**

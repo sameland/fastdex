@@ -101,7 +101,7 @@ public class JarOperation implements Opcodes {
         }
 
         Set<String> changedClasses = fastdexVariant.projectSnapshoot.diffResultSet.addOrModifiedClasses
-        if (fastdexVariant.configuration.hotClasses != null) {
+        if (fastdexVariant.configuration.hotClasses != null && fastdexVariant.configuration.hotClasses.length > 0) {
             String packageName = fastdexVariant.getApplicationPackageName()
             for (String str : fastdexVariant.configuration.hotClasses) {
                 if (str != null) {

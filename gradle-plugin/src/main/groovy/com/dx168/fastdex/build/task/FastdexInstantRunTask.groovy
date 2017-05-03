@@ -24,7 +24,6 @@ public class FastdexInstantRunTask extends DefaultTask {
     String resDir
     boolean alreadySendPatch
     IDevice device
-    String packageName
 
     FastdexInstantRunTask() {
         group = 'fastdex'
@@ -67,13 +66,11 @@ public class FastdexInstantRunTask extends DefaultTask {
     }
 
     public void onDexTransformComplete() {
-        project.logger.error("==fastdex onDexTransformComplete")
-        if (!fastdexVariant.fromInstantRun) {
+        if (!isInstantRunBuild()) {
             return
         }
-        project.logger.error("==fastdex onDexTransformComplete2")
         preparedDevice()
-        packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
+        def packageName = fastdexVariant.getApplicationPackageName()
         ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
         try {
             boolean active = false
@@ -111,6 +108,8 @@ public class FastdexInstantRunTask extends DefaultTask {
                 changeCount += 1
             }
 
+            long start = System.currentTimeMillis()
+
             serviceCommunicator.talkToService(device, new Communicator<Boolean>() {
                 @Override
                 public Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
@@ -144,13 +143,14 @@ public class FastdexInstantRunTask extends DefaultTask {
                     return input.readBoolean()
                 }
             })
-            project.logger.error("==fastdex send patch data success.....")
+            long end = System.currentTimeMillis();
+            project.logger.error("==fastdex send patch data success. use: ${end - start}ms")
 
             //kill app
             killApp(appPid)
-            startBootActivity(packageName)
+            startBootActivity()
 
-            project.tasks.getByName("validateSigning${fastdexVariant.variantName}").enabled = false
+            //project.tasks.getByName("validateSigning${fastdexVariant.variantName}").enabled = false
             project.tasks.getByName("package${fastdexVariant.variantName}").enabled = false
             project.tasks.getByName("assemble${fastdexVariant.variantName}").enabled = false
             alreadySendPatch = true
@@ -168,110 +168,17 @@ public class FastdexInstantRunTask extends DefaultTask {
         }
 
         preparedDevice()
-        if (packageName == null) {
-            packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
-        }
-        normalRun(device,packageName)
-//        IDevice device = preparedDevice()
-//        String packageName = GradleUtils.getPackageName(project.android.sourceSets.main.manifest.srcFile.absolutePath)
-//        ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
-//        try {
-//            boolean active = false
-//            int appPid = -1
-//            MetaInfo runtimeMetaInfo = serviceCommunicator.talkToService(device, new Communicator<MetaInfo>() {
-//                @Override
-//                public MetaInfo communicate(DataInputStream input, DataOutputStream output) throws IOException {
-//                    output.writeInt(ProtocolConstants.MESSAGE_PING)
-//                    MetaInfo runtimeMetaInfo = new MetaInfo()
-//                    active = input.readBoolean()
-//                    runtimeMetaInfo.buildMillis = input.readLong()
-//                    runtimeMetaInfo.variantName = input.readUTF()
-//                    appPid = input.readInt()
-//                    return runtimeMetaInfo
-//                }
-//            })
-//            project.logger.error("==fastdex receive: ${runtimeMetaInfo}")
-//            if (fastdexVariant.metaInfo.buildMillis != runtimeMetaInfo.buildMillis) {
-//                throw new IOException("buildMillis not equal")
-//            }
-//            if (!fastdexVariant.metaInfo.variantName.equals(runtimeMetaInfo.variantName)) {
-//                throw new IOException("variantName not equal")
-//            }
-//
-//            File resourcesApk = FastdexUtils.getResourcesApk(project,fastdexVariant.variantName)
-//            generateResourceApk(resourcesApk)
-//            File mergedPatchDex = FastdexUtils.getMergedPatchDex(fastdexVariant.project,fastdexVariant.variantName)
-//            File patchDex = FastdexUtils.getPatchDexFile(fastdexVariant.project,fastdexVariant.variantName)
-//
-//            int changeCount = 1
-//            if (FileUtils.isLegalFile(mergedPatchDex)) {
-//                changeCount += 1
-//            }
-//            if (FileUtils.isLegalFile(patchDex)) {
-//                changeCount += 1
-//            }
-//
-//            boolean result = serviceCommunicator.talkToService(device, new Communicator<Boolean>() {
-//                @Override
-//                public Boolean communicate(DataInputStream input, DataOutputStream output) throws IOException {
-//                    output.writeInt(ProtocolConstants.MESSAGE_PATCHES)
-//                    output.writeLong(0L)
-//                    output.writeInt(changeCount)
-//
-//                    project.logger.error("==fastdex write ${ShareConstants.RESOURCE_APK_FILE_NAME}")
-//                    output.writeUTF(ShareConstants.RESOURCE_APK_FILE_NAME)
-//                    byte[] bytes = FileUtils.readContents(resourcesApk)
-//                    output.writeInt(bytes.length)
-//                    output.write(bytes)
-//                    if (FileUtils.isLegalFile(mergedPatchDex)) {
-//                        project.logger.error("==fastdex write ${mergedPatchDex}")
-//                        output.writeUTF(ShareConstants.MERGED_PATCH_DEX)
-//                        bytes = FileUtils.readContents(mergedPatchDex)
-//                        output.writeInt(bytes.length)
-//                        output.write(bytes)
-//                    }
-//                    if (FileUtils.isLegalFile(patchDex)) {
-//                        project.logger.error("==fastdex write ${patchDex}")
-//                        output.writeUTF(ShareConstants.PATCH_DEX)
-//                        bytes = FileUtils.readContents(patchDex)
-//                        output.writeInt(bytes.length)
-//                        output.write(bytes)
-//                    }
-//
-//                    output.writeInt(ProtocolConstants.UPDATE_MODE_WARM_SWAP)
-//                    output.writeBoolean(true)
-//
-//                    return input.readBoolean()
-//                }
-//            })
-//            if (result) {
-//                project.logger.error("==fastdex send patch data success.....")
-//
-//                //kill app
-//                killApp(appPid)
-//                startBootActivity(packageName)
-//            }
-//            else {
-//                project.logger.error("==fastdex send patch data fail.....")
-//                normalRun(device,packageName,fastdexVariant.metaInfo.variantName)
-//            }
-//        } catch (IOException e) {
-//            if (fastdexVariant.configuration.debug) {
-//                e.printStackTrace()
-//            }
-//            //TODO 选择一个variant
-//            normalRun(device,packageName,"Debug")
-//        }
+        normalRun(device)
     }
 
-    void normalRun(IDevice device,String packageName) {
+    void normalRun(IDevice device) {
         def targetVariant = fastdexVariant.androidVariant
         project.logger.error("==fastdex normal run ${fastdexVariant.variantName}")
         //安装app
         File apkFile = targetVariant.outputs.first().getOutputFile()
         project.logger.error("adb install -r ${apkFile}")
         device.installPackage(apkFile.absolutePath,true)
-        startBootActivity(packageName)
+        startBootActivity()
     }
 
     def killApp(appPid) {
@@ -296,7 +203,9 @@ public class FastdexInstantRunTask extends DefaultTask {
         }
     }
 
-    def startBootActivity(String packageName) {
+    def startBootActivity() {
+        def packageName = fastdexVariant.getApplicationPackageName()
+
         //启动第一个activity
         String bootActivityName = GradleUtils.getBootActivity(fastdexVariant.manifestPath)
         if (bootActivityName) {
@@ -381,5 +290,9 @@ public class FastdexInstantRunTask extends DefaultTask {
             }
         }
         return result;
+    }
+
+    def isInstantRunBuild() {
+        return project.gradle.startParameter.taskRequests.get(0).args.get(0).toString().endsWith("fastdex${fastdexVariant.variantName}")
     }
 }
