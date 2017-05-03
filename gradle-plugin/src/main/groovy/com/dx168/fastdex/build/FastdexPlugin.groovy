@@ -175,6 +175,7 @@ class FastdexPlugin implements Plugin<Project> {
                                     Transform transform = ((TransformTask) task).getTransform()
                                     //如果开启了multiDexEnabled true,存在transformClassesWithJarMergingFor${variantName}任务
                                     if ((((transform instanceof JarMergingTransform)) && !(transform instanceof FastdexJarMergingTransform))) {
+                                        fastdexVariant.hasJarMergingTask = true
                                         if (fastdexVariant.configuration.debug) {
                                             project.logger.error("==fastdex find jarmerging transform. transform class: " + task.transform.getClass() + " . task name: " + task.name)
                                         }

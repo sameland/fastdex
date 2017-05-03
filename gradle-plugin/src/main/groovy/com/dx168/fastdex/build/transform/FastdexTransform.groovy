@@ -196,7 +196,7 @@ class FastdexTransform extends TransformProxy {
     File generatePatchJar(TransformInvocation transformInvocation) {
         def config = fastdexVariant.androidVariant.getVariantData().getVariantConfiguration()
         boolean isMultiDexEnabled = config.isMultiDexEnabled()
-        if (isMultiDexEnabled && fastdexVariant.executedJarMerge) {
+        if (isMultiDexEnabled && (fastdexVariant.executedJarMerge || fastdexVariant.hasJarMergingTask)) {
             //如果开启了multidex,FastdexJarMergingTransform完成了jar merge的操作
             File patchJar = getCombinedJarFile(transformInvocation)
             project.logger.error("==fastdex multiDex enabled use patch.jar: ${patchJar}")

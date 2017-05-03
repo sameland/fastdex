@@ -31,6 +31,7 @@ public class FastdexVariant {
     boolean hasDexCache
     boolean firstPatchBuild
     boolean initialized
+    boolean hasJarMergingTask
     boolean executedJarMerge
     boolean executedDexTransform
     MetaInfo metaInfo
