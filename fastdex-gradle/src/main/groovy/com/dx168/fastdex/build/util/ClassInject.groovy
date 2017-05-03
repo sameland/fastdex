@@ -183,7 +183,7 @@ public class ClassInject implements Opcodes {
 
                 boolean needInject = true
                 if (applicationProjectSrc && (fileName.endsWith("R.class") || fileName.matches("R\\\$\\S{1,}.class"))) {
-                    String packageName = fastdexVariant.getApplicationPackageName()
+                    String packageName = fastdexVariant.getOriginPackageName()
                     String packageNamePath = packageName.split("\\.").join(File.separator)
                     if (!classFile.absolutePath.endsWith("${packageNamePath}${File.separator}${fileName}")) {
                         needInject = false

@@ -10,6 +10,6 @@ public interface Constants extends ShareConstants {
     String PATCH_DIR = "patch";
     String TEMP_DIR = "temp";
     String DEX_DIR = "dex";
-    String ODEX_DIR = "odex";
+    String OPT_DIR = "opt";
     String RES_DIR = "res";
 }

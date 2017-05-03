@@ -66,7 +66,7 @@ project.afterEvaluate {
 
             project.copy {
                 from outDex
-                into project.rootProject.file('gradle-plugin/src/main/resources')
+                into project.rootProject.file('fastdex-gradle/src/main/resources')
             }
 
             project.file("build/intermediates/classes/release").deleteDir()

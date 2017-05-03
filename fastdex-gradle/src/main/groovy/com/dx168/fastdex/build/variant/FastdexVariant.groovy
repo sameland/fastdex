@@ -27,7 +27,8 @@ public class FastdexVariant {
     final ProjectSnapshoot projectSnapshoot
     final TagManager tagManager
     final Set<LibDependency> libraryDependencies
-    String packageName
+    String originPackageName
+    String mergedPackageName
     boolean hasDexCache
     boolean firstPatchBuild
     boolean initialized
@@ -144,16 +145,28 @@ public class FastdexVariant {
     }
 
     /**
-     * 获取manifest文件package节点的值
+     * 获取原始manifest文件的package节点的值
      * @return
      */
-    public String getApplicationPackageName() {
-        if (packageName != null) {
-            return packageName
+    public String getOriginPackageName() {
+        if (originPackageName != null) {
+            return originPackageName
         }
         String path = project.android.sourceSets.main.manifest.srcFile.absolutePath
-        packageName = GradleUtils.getPackageName(path)
-        return packageName
+        originPackageName = GradleUtils.getPackageName(path)
+        return originPackageName
+    }
+
+    /**
+     * 获取合并以后的manifest文件的package节点的值
+     * @return
+     */
+    public String getMergedPackageName() {
+        if (mergedPackageName != null) {
+            return mergedPackageName
+        }
+        mergedPackageName = GradleUtils.getPackageName(manifestPath)
+        return mergedPackageName
     }
 
     /**

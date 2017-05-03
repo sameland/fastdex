@@ -122,9 +122,9 @@ public class Fastdex {
         }
 
         final File dexDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.DEX_DIR);
-        final File odexDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.ODEX_DIR);
+        final File optDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.OPT_DIR);
         final File resourceDirectory = new File(new File(runtimeMetaInfo.getPatchPath()),Constants.RES_DIR);
-
+        FileUtils.ensumeDir(optDirectory);
         File resourceApkFile = new File(resourceDirectory,Constants.RESOURCE_APK_FILE_NAME);
         if (FileUtils.isLegalFile(resourceApkFile)) {
             Log.d(LOG_TAG,"apply res patch: " + resourceApkFile);
@@ -150,7 +150,7 @@ public class Fastdex {
             PathClassLoader classLoader = (PathClassLoader) Fastdex.class.getClassLoader();
             try {
                 Log.d(LOG_TAG,"apply dex patch: " + dexList);
-                SystemClassLoaderAdder.installDexes(fastdexApplication,classLoader,odexDirectory,dexList);
+                SystemClassLoaderAdder.installDexes(fastdexApplication,classLoader,optDirectory,dexList);
             } catch (Throwable throwable) {
                 throw new FastdexRuntimeException(throwable);
             }

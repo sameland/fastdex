@@ -70,7 +70,7 @@ public class FastdexInstantRunTask extends DefaultTask {
             return
         }
         preparedDevice()
-        def packageName = fastdexVariant.getApplicationPackageName()
+        def packageName = fastdexVariant.getMergedPackageName()
         ServiceCommunicator serviceCommunicator = new ServiceCommunicator(packageName)
         try {
             boolean active = false
@@ -204,7 +204,7 @@ public class FastdexInstantRunTask extends DefaultTask {
     }
 
     def startBootActivity() {
-        def packageName = fastdexVariant.getApplicationPackageName()
+        def packageName = fastdexVariant.getMergedPackageName()
 
         //启动第一个activity
         String bootActivityName = GradleUtils.getBootActivity(fastdexVariant.manifestPath)
@@ -293,6 +293,11 @@ public class FastdexInstantRunTask extends DefaultTask {
     }
 
     def isInstantRunBuild() {
-        return project.gradle.startParameter.taskRequests.get(0).args.get(0).toString().endsWith("fastdex${fastdexVariant.variantName}")
+        String launchTaskName = project.gradle.startParameter.taskRequests.get(0).args.get(0).toString()
+        boolean result = launchTaskName.endsWith("fastdex${fastdexVariant.variantName}")
+        if (fastdexVariant.configuration.debug) {
+            project.logger.error("==fastdex launchTaskName: ${launchTaskName}")
+        }
+        return result
     }
 }
