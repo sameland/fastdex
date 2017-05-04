@@ -49,7 +49,7 @@ public class FastdexInstantRunTask extends DefaultTask {
         }
         AndroidDebugBridge.initIfNeeded(false)
         AndroidDebugBridge bridge =
-                AndroidDebugBridge.createBridge("/Users/tong/Applications/android-sdk-macosx/platform-tools/adb", false)
+                AndroidDebugBridge.createBridge(FastdexUtils.getAdbCmdPath(project), false)
         waitForDevice(bridge)
         IDevice[] devices = bridge.getDevices()
         if (devices != null && devices.length > 0) {

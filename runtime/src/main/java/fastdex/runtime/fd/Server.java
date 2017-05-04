@@ -65,6 +65,8 @@ public class Server {
 
     private final Context context;
 
+    private final Handler handler = new Handler();
+
     private static int wrongTokenCount;
 
 
@@ -483,6 +485,23 @@ public class Server {
                 Log.e(Logging.LOG_TAG, "No resource file found to apply");
                 updateMode = UPDATE_MODE_COLD_SWAP;
             }
+        }
+        else {
+            handler.post(new Runnable() {
+                @Override
+                public void run() {
+                    for (Activity activity : activities) {
+                        try {
+                            activity.finish();
+                        } catch (Throwable e) {
+
+                        }
+                    }
+
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(0);
+                }
+            });
         }
 
         Activity activity = Restarter.getForegroundActivity(context);
