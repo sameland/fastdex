@@ -3,7 +3,7 @@
 
 [![license](https://img.shields.io/hexpm/l/plug.svg)](https://raw.githubusercontent.com/typ0520/fastdex/master/LICENSE)
 
-[ ![Download](https://api.bintray.com/packages/typ0520/maven/com.github.typ0520%3Afastdex-gradle/images/download.svg) ](https://bintray.com/typ0520/maven/com.github.typ0520%3Agradle-plugin/_latestVersion)
+[ ![Download](https://api.bintray.com/packages/typ0520/maven/com.github.sameland%3Afastdex-gradle/images/download.svg) ](https://bintray.com/typ0520/maven/com.github.sameland%3Agradle-plugin/_latestVersion)
 
 Android API 9(2.3)+  ; android-gradle-build 2.0.0+
 
@@ -23,14 +23,14 @@ Android API 9(2.3)+  ; android-gradle-build 2.0.0+
         dependencies {
             ......
 
-            classpath 'com.github.typ0520:fastdex-gradle:0.1.9'
+            classpath 'com.github.sameland:fastdex-gradle:0.1.0'
         }
     }
     ````
     
 - 3、在app的项目中的build.gradle添加插件
     ````
-    apply plugin: 'com.github.typ0520.fastdex'
+    apply plugin: 'com.github.sameland.fastdex'
     ````
 
 ## 注意事项

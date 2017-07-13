@@ -3,7 +3,7 @@ apply plugin: 'maven-publish'
 
 def projectName = project.hasProperty("MAVEN_ARTIFACT_ID") ? project.MAVEN_ARTIFACT_ID : project.name
 def mavenDesc = projectName
-def baseUrl = 'https://github.com/typ0520/fastdex'
+def baseUrl = 'https://github.com/sameland/fastdex'
 def siteUrl = baseUrl
 def gitUrl = "${baseUrl}.git"
 def issueUrl = "${baseUrl}/issues"

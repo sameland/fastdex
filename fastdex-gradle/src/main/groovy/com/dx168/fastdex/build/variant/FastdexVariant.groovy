@@ -44,7 +44,13 @@ public class FastdexVariant {
 
         this.configuration = project.fastdex
         this.variantName = androidVariant.name.capitalize()
-        this.manifestPath = androidVariant.outputs.first().processManifest.manifestOutputFile
+        try {
+            // Android Gradle Plugin < 3.0.0
+            this.manifestPath = androidVariant.outputs.first().processManifest.manifestOutputFile
+        } catch (Exception ignored) {
+            // Android Gradle Plugin >= 3.0.0
+            this.manifestPath = new File(androidVariant.outputs.first().processManifest.manifestOutputDirectory, "AndroidManifest.xml")
+        }
         this.rootBuildDir = FastdexUtils.getBuildDir(project)
         this.buildDir = FastdexUtils.getBuildDir(project,variantName)
 

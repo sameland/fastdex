@@ -11,7 +11,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState
 import org.gradle.util.Clock;
 import com.dx168.fastdex.build.FastdexPlugin
-import com.github.typ0520.fastdex.Version
+import com.github.sameland.fastdex.Version
 import java.lang.management.ManagementFactory
 import fastdex.common.utils.FileUtils
 
